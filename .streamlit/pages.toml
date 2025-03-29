@@ -1,0 +1,24 @@
+[[pages]]
+name = "Experiment"
+icon = "*"
+is_section = true
+
+[[pages]]
+path = "pages/tutorial.py"
+name = "Start"
+icon = ":material/not_started:"
+
+[[pages]]
+path = "pages/cold_start.py"
+name = "Build Profile"
+icon = ":material/person:"
+
+[[pages]]
+path = "pages/chat.py"
+name = "Chat"
+icon = ":material/forum:"
+
+[[pages]]
+path = "pages/submit_feedback.py"
+name = "Feedback"
+icon = ":material/send:"

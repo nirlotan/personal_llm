@@ -1,0 +1,8 @@
+﻿label,description
+Engagement,"How engaging did you find the LLM’s personality or style of conversation? (Scale: 1 = Not engaging at all, 5 = Very engaging and enjoyable to talk to)"
+Perception,"How natural or human-like did the LLM’s personality seem during the conversation? (1 = Robotic or awkward, 5 = Very natural and human-like)"
+Would Use Again,"Would you prefer to use this LLM again specifically because of its personality or style? (1 = Definitely not, 5 = Definitely yes)"
+Perceived Personality,"How would you rate the LLM’s personality (e.g., friendly, witty, warm)? (1 = No personality / flat, 5 = Strong and enjoyable personality)"
+Emotional Connection,"Did you feel any emotional connection to the LLM during the interaction? (Scale: 1 = Not at all, 5 = Strong emotional connection)"
+Social Presence,"Did it feel like you were having a conversation with a person rather than a machine? (Scale: 1 = Clearly a machine, 5 = Felt human-like)"
+Impact on Usefulness,"How much did the LLM’s personality improve the usefulness of the interaction? (Scale: 1 = Not at all, 5 = Greatly improved it)"
