@@ -6,8 +6,6 @@ from typing import Literal
 import numpy as np
 import dspy
 import random
-from langchain.chains import LLMChain
-import ast
 
 categories_file_path = os.path.join("data","popular_accounts_manually_validated_with_sv.xlsx")
 

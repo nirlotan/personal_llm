@@ -1,6 +1,5 @@
 import streamlit as st
 from st_pages import add_page_title, get_nav_from_toml
-from st_on_hover_tabs import on_hover_tabs
 
 st.set_page_config(layout="wide")
 with open( "styles.css" ) as css:

@@ -1,12 +1,9 @@
-import os
 import pandas as pd
 import streamlit as st
-import random
 import streamlit_antd_components as sac
 from utils.utils import *
 from utils.temp_utils import *
 import streamlit_shadcn_ui as ui
-from socialvec.socialvec import SocialVec
 import numpy as np
 
 from streamlit_extras.bottom_container import bottom

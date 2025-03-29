@@ -1,6 +1,5 @@
 import streamlit as st
 import streamlit_antd_components as sac
-import streamlit_shadcn_ui as ui
 import firebase_admin
 from firebase_admin import credentials, db
 import json
