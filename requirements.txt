@@ -7,7 +7,6 @@ langchain_openai
 numpy
 pandas
 scikit_learn
-socialvec
 st_pages
 streamlit
 streamlit_antd_components
@@ -16,3 +15,5 @@ streamlit_javascript
 streamlit_shadcn_ui
 toml
 user_agents
+socialvec
+openpyxl
