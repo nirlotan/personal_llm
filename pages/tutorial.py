@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit_antd_components as sac
 
 st.markdown("""
 <style>
@@ -27,3 +28,11 @@ body, html {
 
 **תודה רבה על שיתוף הפעולה וההשתתפות!**
 """, unsafe_allow_html=True)
+
+next_button = sac.buttons([
+    sac.ButtonsItem(label='התחל', color='#25C3B0', icon="caret-right")
+], label="", index=None, color='violet', variant='filled')
+
+if next_button == "התחל":
+    st.session_state['clear_messages'] = True
+    st.switch_page('pages/cold_start.py')
