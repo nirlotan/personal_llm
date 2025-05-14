@@ -2,10 +2,13 @@ import os
 import pandas as pd
 from socialvec.socialvec import SocialVec
 import streamlit as st
-from typing import Literal
+from typing import Optional, Literal
+from enum import Enum
 import numpy as np
 import dspy
 import random
+from langchain.chains import LLMChain
+import ast
 
 categories_file_path = os.path.join("data","popular_accounts_manually_validated_with_sv.xlsx")
 
@@ -98,19 +101,53 @@ class ClassifyInfoRequest(dspy.Signature):
     is_info_request: bool = dspy.OutputField()
 
 
+# Define Intent Enum
+class UserIntent(str, Enum):
+    FRIENDLY_CHAT = "Friendly Chat"
+    RECOMMENDATION = "Recommendation"
+    INFO_REQUEST = "Info Request"
+    OTHER = "Other"
+
+
+class ClassifyUserIntent(dspy.Signature):
+    """
+    Classify a sentence into a single intent type.
+    Recommendation may be explicit, for example if the user asked you about something you like or did.
+    If you are not sure between "Info Request" and "Recommendation", the intent will be "Recommendation"
+    If the intent is 'Recommendation', a related topic is also returned.
+
+    """
+
+    sentence: str = dspy.InputField()
+    intent: UserIntent = dspy.OutputField()
+    topic: Optional[Literal[
+        'TennisTournament', 'Mountain', 'TelevisionStation', 'FilmFestival', 'Scientist', 'Building', 'SpaceMission', 'IceHockeyLeague', 'Sport', 'Album', 'Musical', 'ShoppingMall', 'PokerPlayer', 'VoiceActor', 'RadioStation', 'NascarDriver', 'Single', 'SoccerLeague', 'MotorsportSeason', 'CanadianFootballLeague', 'CyclingRace', 'FormulaOneTeam', 'Theatre', 'Racecourse', 'ComedyGroup', 'Cardinal', 'Cricketer', 'Coach', 'Artist', 'Skater', 'TennisLeague', 'SoccerManager', 'Youtuber', 'Writer', 'AdultActor', 'School', 'BadmintonPlayer', 'MotorsportRacer', 'HorseRace', 'Presenter', 'Skier', 'AmusementParkAttraction', 'Anime', 'PoliticalParty', 'SoftballLeague', 'FootballLeagueSeason', 'RaceTrack', 'Journalist', 'Religious', 'MusicalArtist', 'Race', 'BusinessPerson', 'Olympics', 'Cinema', 'Airport', 'Election', 'Boxer', 'River', 'MusicGenre', 'ScreenWriter', 'BaseballTeam', 'Chef', 'SoccerTournament', 'ClassicalMusicArtist', 'SnookerPlayer', 'BeautyQueen', 'RadioHost', 'PeriodicalLiterature', 'RugbyLeague', 'SportsClub', 'EducationalInstitution', 'ChristianBishop', 'GolfCourse', 'AustralianFootballTeam', 'GridironFootballPlayer', 'RadioProgram', 'VolleyballPlayer', 'SnookerChamp', 'CollegeCoach', 'MusicalWork', 'ArtistDiscography', 'Food', 'Venue', 'Hotel', 'Dancer', 'Publisher', 'Convention', 'Insect', 'Tournament', 'Comedian', 'MartialArtist', 'Bank', 'Software', 'Broadcaster', 'AcademicJournal', 'Airline', 'RugbyPlayer', 'MixedMartialArtsLeague', 'HockeyTeam', 'MovieDirector', 'TelevisionShow', 'CricketTeam', 'Village', 'ProgrammingLanguage', 'BaseballPlayer', 'ComicsCreator', 'Museum', 'Library', 'GovernmentAgency', 'BasketballPlayer', 'Bodybuilder', 'Astronaut', 'FashionDesigner', 'FigureSkater', 'Winery', 'SpeedwayRider', 'Place', 'Restaurant', 'Newspaper', 'HollywoodCartoon', 'TennisPlayer', 'Fashion', 'Legislature', 'RugbyClub', 'SportsLeague', 'SoccerPlayer', 'Cleric', 'SportFacility', 'WrittenWork', 'Film', 'TelevisionHost', 'WomensTennisAssociationTournament', 'GolfTournament', 'Bird', 'BasketballTeam', 'SoccerClubSeason', 'AmericanFootballTeam', 'Surfer', 'HistoricBuilding', 'HistoricPlace', 'LacrosseLeague', 'Cyclist', 'NationalFootballLeagueEvent', 'Automobile', 'Producer', 'VideoGame', 'FictionalCharacter', 'SoccerClub', 'SocietalEvent', 'University', 'DartsPlayer', 'SportsEvent', 'Architect', 'ComicsCharacter', 'Swimmer', 'NCAATeamSeason', 'IceHockeyPlayer', 'BaseballLeague', 'Bridge', 'FormulaOneRacer', 'Politician', 'Game', 'Artwork', 'Beverage', 'Economist', 'Manga', 'Wrestler', 'SportsTeam', 'Magazine', 'BroadcastNetwork', 'Brewery', 'RacingDriver', 'Mayor', 'SportsManager', 'BeachVolleyballPlayer', 'AmericanFootballLeague', 'Curler', 'Lake', 'Model', 'CyclingTeam', 'WrestlingEvent', 'Book', 'AmericanFootballPlayer', 'WinterSportPlayer', 'Actor', 'Athlete', 'GolfPlayer', 'Gymnast', 'RecordLabel', 'MemberOfParliament', 'ArchitecturalStructure', 'Band', 'Governor', 'Rocket', 'Congressman', 'BasketballLeague'
+    ]] = dspy.OutputField()
+
 
 lm = dspy.LM('openai/gpt-4o-mini', api_key=st.secrets["openai_api_key"])
 
-def get_recommendation(sv, sentence):
-    user_sv = st.session_state["user_embeddings"]
+def get_user_intent(sentence):
     with dspy.context(lm=lm):
-        classify = dspy.Predict(ClassifyRecommend)
+        classify = dspy.Predict(ClassifyUserIntent)
         result = classify(sentence=sentence)
-        if result.is_recommendation:
-            similar = new_get_similar(sv, user_sv, result.topic).head(5)
-            return result.topic, similar['name'].tolist()
-        else:
-            return None, None
+    return result
+
+def get_recommendation(sv, topic):
+    user_sv = st.session_state["user_embeddings"]
+    similar = new_get_similar(sv, user_sv, topic).head(7)
+    return similar['name'].tolist()
+
+# def get_recommendation(sv, sentence):
+#     user_sv = st.session_state["user_embeddings"]
+#     with dspy.context(lm=lm):
+#         classify = dspy.Predict(ClassifyRecommend)
+#         result = classify(sentence=sentence)
+#         if result.is_recommendation:
+#             similar = new_get_similar(sv, user_sv, result.topic).head(5)
+#             return result.topic, similar['name'].tolist()
+#         else:
+#             return None, None
 
 def is_info_request(sentence):
     with dspy.context(lm=lm):
