@@ -1,6 +1,10 @@
 import streamlit as st
 import streamlit_antd_components as sac
 from utils.utils import load
+from streamlit_javascript import st_javascript
+from user_agents import parse
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 st.markdown("""
 
@@ -21,6 +25,18 @@ Participation in the experiment is anonymous, and all collected data will be use
 
 **Thank you very much for your cooperation and participation!**
 """, unsafe_allow_html=True)
+
+try:
+    # check user agent to suppress non-mandatory parts when running on mobile
+    ua_string = st_javascript("""window.navigator.userAgent;""")
+    user_agent = parse(ua_string)
+    st.session_state.is_session_pc = user_agent.is_pc
+except:
+    st.session_state.is_session_pc = True
+
+
+
+
 
 next_button = sac.buttons([
     sac.ButtonsItem(label='Start', color='#25C3B0', icon="caret-right")

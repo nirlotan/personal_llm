@@ -29,7 +29,10 @@ if 'next_clicked' not in st.session_state:
 if 'categories_selected' not in st.session_state:
     st.session_state['categories_selected'] = False
 
-
+if st.session_state.is_session_pc:
+    categories_size = 45
+else:
+    categories_size = 25
 
 ready_to_continue = False
 
@@ -40,7 +43,7 @@ if not st.session_state['categories_selected']:
 
     selected_categories = sac.chip(items=[sac.ChipItem(label=category) for category in categories]
              ,label='Select 3-5 of your preferred categories', description='Select 3 to 5 categories',
-                                   align='center', size=45, radius=40, color='grape', multiple=True)
+                                   size=categories_size, radius=40, color='grape', multiple=True)
 
 
     if len(selected_categories) > 5:
@@ -49,7 +52,7 @@ if not st.session_state['categories_selected']:
 
         if "Next" == sac.buttons([
             sac.ButtonsItem(label='Next', color='green', icon="caret-right", )
-        ], label="",  size=25, radius=40, index=None):
+        ], label="", size=25, radius=40, index=None):
 
             st.session_state['categories_selected'] = True
             st.session_state['selected_categories'] = selected_categories
