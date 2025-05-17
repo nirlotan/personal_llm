@@ -27,7 +27,11 @@ with open("styles.css") as css:
     st.markdown(f'<style>{css.read()}</style>', unsafe_allow_html=True)
 
 # --- Configuration ---
-openai_api_key = st.secrets["openai_api_key"]
+try:
+    openai_api_key = st.secrets["openai_api_key"]
+except:
+    openai_api_key = os.environ.get('openai_api_key')
+
 app_config = toml.load("config.toml")
 
 if 'chat_status' not in st.session_state:

@@ -4,6 +4,7 @@ import streamlit_shadcn_ui as ui
 import firebase_admin
 from firebase_admin import credentials, db
 import json
+import os
 import pandas as pd
 from streamlit_extras.bottom_container import bottom
 
@@ -16,7 +17,11 @@ def on_button_click():
     st.session_state.button_clicked = True  # Set the button as clicked
 
 if not firebase_admin._apps:
-    cred = credentials.Certificate(json.loads(st.secrets['freebase_certificate']))
+    try:
+        firebase_json = st.secrets['freebase_certificate']
+    except:
+        firebase_json = os.environ.get('freebase_certificate')
+    cred = credentials.Certificate(json.loads(firebase_json))
     # Initialize the Firebase app
     firebase_admin.initialize_app(cred, {
         'databaseURL': 'https://socialai-00007-default-rtdb.firebaseio.com/'  # Use your own database URL here
