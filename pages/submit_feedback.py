@@ -1,12 +1,13 @@
 import streamlit as st
 import streamlit_antd_components as sac
-import streamlit_shadcn_ui as ui
 import firebase_admin
 from firebase_admin import credentials, db
 import json
-import os
 import pandas as pd
 from streamlit_extras.bottom_container import bottom
+
+if 'init_complete' not in st.session_state:
+    st.switch_page('pages/cold_start.py')
 
 # Initialize session state for the button
 if "button_clicked" not in st.session_state:
@@ -17,10 +18,7 @@ def on_button_click():
     st.session_state.button_clicked = True  # Set the button as clicked
 
 if not firebase_admin._apps:
-    try:
-        firebase_json = st.secrets['freebase_certificate']
-    except:
-        firebase_json = os.environ.get('freebase_certificate')
+    firebase_json = st.session_state['secrets']['freebase_certificate']
     cred = credentials.Certificate(json.loads(firebase_json))
     # Initialize the Firebase app
     firebase_admin.initialize_app(cred, {

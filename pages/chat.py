@@ -1,21 +1,12 @@
 # --- Imports ---
-import os
 import time
-import toml
-import pandas as pd
-import streamlit as st
 import streamlit_antd_components as sac
-import streamlit_shadcn_ui as ui
 from streamlit_extras.bottom_container import bottom
-from streamlit_javascript import st_javascript
-from user_agents import parse
-
 from langchain_openai import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
-
 from utils.utils import *
 
 def split_before_last_marker(text, marker="._."):
@@ -26,11 +17,11 @@ def split_before_last_marker(text, marker="._."):
 with open("styles.css") as css:
     st.markdown(f'<style>{css.read()}</style>', unsafe_allow_html=True)
 
+if 'init_complete' not in st.session_state:
+    st.switch_page('pages/cold_start.py')
+
 # --- Configuration ---
-try:
-    openai_api_key = st.secrets["openai_api_key"]
-except:
-    openai_api_key = os.environ.get('openai_api_key')
+openai_api_key = st.session_state['secrets']["openai_api_key"]
 
 app_config = toml.load("config.toml")
 

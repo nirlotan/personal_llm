@@ -1,29 +1,15 @@
-import os
-import pandas as pd
-import streamlit as st
-import random
-import streamlit_shadcn_ui as ui
-from socialvec.socialvec import SocialVec
-
 import streamlit_antd_components as sac
 from utils.utils import *
 from utils.lang_utils import *
 from utils.prepare_prompt import prepare_system_prompt
 import numpy as np
 
-from streamlit_extras.bottom_container import bottom
-
-if 'indices' not in st.session_state:
-    sv, categories, accounts, indices = load()
-    st.session_state['sv'] = sv
-    st.session_state['categories'] = categories
-    st.session_state['accounts'] = accounts
-    st.session_state['indices'] = indices
+if 'init_complete' not in st.session_state:
+    load()
 else:
     sv = st.session_state['sv']
     categories = st.session_state['categories']
     accounts = st.session_state['accounts']
-    indices = st.session_state['indices']
 if 'next_clicked' not in st.session_state:
     st.session_state['next_clicked'] = False
 if 'categories_selected' not in st.session_state:
@@ -71,11 +57,6 @@ if st.session_state['categories_selected']:
 
         current_category = st.session_state['selected_categories'][st.session_state['category_index']]
         accounts_in_category = accounts[accounts['category'] == current_category]['twitter_name'].unique().tolist()
-        # accounts_for_selection = [accounts_in_category[i] for i in indices]
-        # random.seed(76)
-        # shuffled_accounts = accounts_for_selection.copy()
-        # random.shuffle(shuffled_accounts)
-        # chip_items = [sac.ChipItem(label=account) for account in shuffled_accounts]
         chip_items = [sac.ChipItem(label=account) for account in accounts_in_category]
 
 

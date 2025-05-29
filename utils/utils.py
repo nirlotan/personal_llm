@@ -6,9 +6,8 @@ from typing import Optional, Literal
 from enum import Enum
 import numpy as np
 import dspy
-import random
+import toml
 from langchain.chains import LLMChain
-import ast
 
 categories_file_path = os.path.join("data","popular_accounts_manually_validated_with_sv.xlsx")
 
@@ -24,7 +23,6 @@ def load():
     categories = pd.ExcelFile(categories_file_path).sheet_names
     accounts = pd.DataFrame()
     for sheet in categories:
-        print(sheet)
         df_rec = pd.read_excel(categories_file_path, sheet_name=sheet)
         df_rec = df_rec[df_rec['use']==1]
         df_rec['category'] = sheet
@@ -35,9 +33,26 @@ def load():
     sv.entities = pd.merge(sv.entities,df_dbpedia, on='screen_name', how='left')
 
     accounts = accounts[['twitter_screen_name','twitter_user_id','twitter_name','use','twitter_desc','wikidata_label','wikidata_desc','wikidata_desc_np','category','sv']]
-    indexes = [0,1,2,3,4 ] + random.sample(range(5, 18), 3)
 
-    return sv, categories, accounts, indexes
+    st.session_state['sv'] = sv
+    st.session_state['categories'] = categories
+    st.session_state['accounts'] = accounts
+
+    if st.secrets:
+        print("Secrets file found")
+        st.session_state['secrets'] = st.secrets
+    else:
+        try:
+            print("Secrets file not in standard streamlit folder, looking in render.com location")
+            st.session_state['secrets'] =toml.load("/etc/secrets/secrets.toml")
+        except:
+            st.error("Secrets file not found")
+            st.stop()
+
+    st.session_state['lm'] = dspy.LM('openai/gpt-4o-mini', api_key=st.session_state['secrets']["openai_api_key"])
+
+    st.session_state['init_complete'] = True
+    return
 
 def check_if_same_type(user_id, type):
     try:
@@ -124,15 +139,8 @@ class ClassifyUserIntent(dspy.Signature):
         'TennisTournament', 'Mountain', 'TelevisionStation', 'FilmFestival', 'Scientist', 'Building', 'SpaceMission', 'IceHockeyLeague', 'Sport', 'Album', 'Musical', 'ShoppingMall', 'PokerPlayer', 'VoiceActor', 'RadioStation', 'NascarDriver', 'Single', 'SoccerLeague', 'MotorsportSeason', 'CanadianFootballLeague', 'CyclingRace', 'FormulaOneTeam', 'Theatre', 'Racecourse', 'ComedyGroup', 'Cardinal', 'Cricketer', 'Coach', 'Artist', 'Skater', 'TennisLeague', 'SoccerManager', 'Youtuber', 'Writer', 'AdultActor', 'School', 'BadmintonPlayer', 'MotorsportRacer', 'HorseRace', 'Presenter', 'Skier', 'AmusementParkAttraction', 'Anime', 'PoliticalParty', 'SoftballLeague', 'FootballLeagueSeason', 'RaceTrack', 'Journalist', 'Religious', 'MusicalArtist', 'Race', 'BusinessPerson', 'Olympics', 'Cinema', 'Airport', 'Election', 'Boxer', 'River', 'MusicGenre', 'ScreenWriter', 'BaseballTeam', 'Chef', 'SoccerTournament', 'ClassicalMusicArtist', 'SnookerPlayer', 'BeautyQueen', 'RadioHost', 'PeriodicalLiterature', 'RugbyLeague', 'SportsClub', 'EducationalInstitution', 'ChristianBishop', 'GolfCourse', 'AustralianFootballTeam', 'GridironFootballPlayer', 'RadioProgram', 'VolleyballPlayer', 'SnookerChamp', 'CollegeCoach', 'MusicalWork', 'ArtistDiscography', 'Food', 'Venue', 'Hotel', 'Dancer', 'Publisher', 'Convention', 'Insect', 'Tournament', 'Comedian', 'MartialArtist', 'Bank', 'Software', 'Broadcaster', 'AcademicJournal', 'Airline', 'RugbyPlayer', 'MixedMartialArtsLeague', 'HockeyTeam', 'MovieDirector', 'TelevisionShow', 'CricketTeam', 'Village', 'ProgrammingLanguage', 'BaseballPlayer', 'ComicsCreator', 'Museum', 'Library', 'GovernmentAgency', 'BasketballPlayer', 'Bodybuilder', 'Astronaut', 'FashionDesigner', 'FigureSkater', 'Winery', 'SpeedwayRider', 'Place', 'Restaurant', 'Newspaper', 'HollywoodCartoon', 'TennisPlayer', 'Fashion', 'Legislature', 'RugbyClub', 'SportsLeague', 'SoccerPlayer', 'Cleric', 'SportFacility', 'WrittenWork', 'Film', 'TelevisionHost', 'WomensTennisAssociationTournament', 'GolfTournament', 'Bird', 'BasketballTeam', 'SoccerClubSeason', 'AmericanFootballTeam', 'Surfer', 'HistoricBuilding', 'HistoricPlace', 'LacrosseLeague', 'Cyclist', 'NationalFootballLeagueEvent', 'Automobile', 'Producer', 'VideoGame', 'FictionalCharacter', 'SoccerClub', 'SocietalEvent', 'University', 'DartsPlayer', 'SportsEvent', 'Architect', 'ComicsCharacter', 'Swimmer', 'NCAATeamSeason', 'IceHockeyPlayer', 'BaseballLeague', 'Bridge', 'FormulaOneRacer', 'Politician', 'Game', 'Artwork', 'Beverage', 'Economist', 'Manga', 'Wrestler', 'SportsTeam', 'Magazine', 'BroadcastNetwork', 'Brewery', 'RacingDriver', 'Mayor', 'SportsManager', 'BeachVolleyballPlayer', 'AmericanFootballLeague', 'Curler', 'Lake', 'Model', 'CyclingTeam', 'WrestlingEvent', 'Book', 'AmericanFootballPlayer', 'WinterSportPlayer', 'Actor', 'Athlete', 'GolfPlayer', 'Gymnast', 'RecordLabel', 'MemberOfParliament', 'ArchitecturalStructure', 'Band', 'Governor', 'Rocket', 'Congressman', 'BasketballLeague'
     ]] = dspy.OutputField()
 
-try:
-    openai_api_key = st.secrets["openai_api_key"]
-except:
-    openai_api_key = os.environ.get('openai_api_key')
-
-lm = dspy.LM('openai/gpt-4o-mini', api_key=openai_api_key)
-
 def get_user_intent(sentence):
-    with dspy.context(lm=lm):
+    with dspy.context(lm=st.session_state['lm']):
         classify = dspy.Predict(ClassifyUserIntent)
         result = classify(sentence=sentence)
     return result
@@ -142,19 +150,8 @@ def get_recommendation(sv, topic):
     similar = new_get_similar(sv, user_sv, topic).head(7)
     return similar['name'].tolist()
 
-# def get_recommendation(sv, sentence):
-#     user_sv = st.session_state["user_embeddings"]
-#     with dspy.context(lm=lm):
-#         classify = dspy.Predict(ClassifyRecommend)
-#         result = classify(sentence=sentence)
-#         if result.is_recommendation:
-#             similar = new_get_similar(sv, user_sv, result.topic).head(5)
-#             return result.topic, similar['name'].tolist()
-#         else:
-#             return None, None
-
 def is_info_request(sentence):
-    with dspy.context(lm=lm):
+    with dspy.context(lm=st.session_state['lm']):
         classify = dspy.Predict(ClassifyInfoRequest)
         result = classify(sentence=sentence)
         if result.is_info_request:

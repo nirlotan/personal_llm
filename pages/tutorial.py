@@ -42,12 +42,8 @@ next_button = sac.buttons([
     sac.ButtonsItem(label='Start', color='#25C3B0', icon="caret-right")
 ], label="", index=None, color='violet', variant='filled')
 
+load()
+
 if next_button == "Start":
     st.session_state['clear_messages'] = True
     st.switch_page('pages/cold_start.py')
-
-sv, categories, accounts, indices = load()
-st.session_state['sv'] = sv
-st.session_state['categories'] = categories
-st.session_state['accounts'] = accounts
-st.session_state['indices'] = indices
