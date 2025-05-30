@@ -4,12 +4,14 @@ from utils.lang_utils import *
 from utils.prepare_prompt import prepare_system_prompt
 import numpy as np
 
-if 'init_complete' not in st.session_state:
-    load()
 
-sv = st.session_state['sv']
-categories = st.session_state['categories']
-accounts = st.session_state['accounts']
+sv, categories, accounts, my_keys, lm = load()
+st.session_state['sv'] = sv
+st.session_state['categories'] = categories
+st.session_state['accounts'] = accounts
+st.session_state['my_api_keys'] = my_keys
+st.session_state['lm'] = lm
+st.session_state['init_complete'] = True
 
 if 'next_clicked' not in st.session_state:
     st.session_state['next_clicked'] = False

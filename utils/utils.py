@@ -17,7 +17,7 @@ def fix_and_parse_array(s):
     numbers = [float(x) for x in s.split()]
     return np.array(numbers)
 
-@st.cache_data
+@st.cache_resource
 def load():
     sv = SocialVec()
     categories = pd.ExcelFile(categories_file_path).sheet_names
@@ -34,21 +34,10 @@ def load():
 
     accounts = accounts[['twitter_screen_name','twitter_user_id','twitter_name','use','twitter_desc','wikidata_label','wikidata_desc','wikidata_desc_np','category','sv']]
 
-    st.session_state['sv'] = sv
-    st.session_state['categories'] = categories
-    st.session_state['accounts'] = accounts
+    my_keys = toml.load("/etc/secrets/keys.toml")
+    lm = dspy.LM('openai/gpt-4o-mini', api_key=st.session_state['my_api_keys']["openai_api_key"])
 
-    # try:
-    #     st.session_state['my_api_keys'] = st.secrets
-    #     print("Secrets file found")
-    # except:
-    print("Secrets file not in standard streamlit folder, looking in render.com location")
-    st.session_state['my_api_keys'] = toml.load("/etc/secrets/keys.toml")
-
-    st.session_state['lm'] = dspy.LM('openai/gpt-4o-mini', api_key=st.session_state['my_api_keys']["openai_api_key"])
-
-    st.session_state['init_complete'] = True
-    return
+    return sv, categories, accounts, my_keys, lm
 
 def check_if_same_type(user_id, type):
     try:
@@ -58,7 +47,6 @@ def check_if_same_type(user_id, type):
             return False
     except:
         pass
-
 
 def new_get_similar(sv, input: str, etype: str, topn: int = 10):
     """
