@@ -43,7 +43,7 @@ def load():
         print("Secrets file found")
     except:
         print("Secrets file not in standard streamlit folder, looking in render.com location")
-        st.session_state['my_api_keys'] = toml.load("/etc/secrets/secrets.toml")
+        st.session_state['my_api_keys'] = toml.load("/etc/secrets/keys.toml")
 
     st.session_state['lm'] = dspy.LM('openai/gpt-4o-mini', api_key=st.session_state['my_api_keys']["openai_api_key"])
 
