@@ -52,7 +52,7 @@ def load():
 
 def check_if_same_type(user_id, type):
     try:
-        if type in sv.entities[sv.entities['twitter_id'] == user_id].iloc[0]['dbpedia_types']:
+        if type in st.session_state['sv'].entities[st.session_state['sv'].entities['twitter_id'] == user_id].iloc[0]['dbpedia_types']:
             return True
         else:
             return False
