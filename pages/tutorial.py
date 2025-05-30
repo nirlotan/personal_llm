@@ -36,13 +36,17 @@ except:
 
 
 
-
+sv, categories, accounts, my_keys, lm = load()
+st.session_state['sv'] = sv
+st.session_state['categories'] = categories
+st.session_state['accounts'] = accounts
+st.session_state['my_api_keys'] = my_keys
+st.session_state['lm'] = lm
+st.session_state['init_complete'] = True
 
 next_button = sac.buttons([
     sac.ButtonsItem(label='Start', color='#25C3B0', icon="caret-right")
 ], label="", index=None, color='violet', variant='filled')
-
-load()
 
 if next_button == "Start":
     st.session_state['clear_messages'] = True
