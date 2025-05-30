@@ -35,7 +35,7 @@ def load():
     accounts = accounts[['twitter_screen_name','twitter_user_id','twitter_name','use','twitter_desc','wikidata_label','wikidata_desc','wikidata_desc_np','category','sv']]
 
     my_keys = toml.load("/etc/secrets/keys.toml")
-    lm = dspy.LM('openai/gpt-4o-mini', api_key=st.session_state['my_api_keys']["openai_api_key"])
+    lm = dspy.LM('openai/gpt-4o-mini', api_key=my_keys["openai_api_key"])
 
     return sv, categories, accounts, my_keys, lm
 
