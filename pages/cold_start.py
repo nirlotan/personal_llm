@@ -6,10 +6,11 @@ import numpy as np
 
 if 'init_complete' not in st.session_state:
     load()
-else:
-    sv = st.session_state['sv']
-    categories = st.session_state['categories']
-    accounts = st.session_state['accounts']
+
+sv = st.session_state['sv']
+categories = st.session_state['categories']
+accounts = st.session_state['accounts']
+
 if 'next_clicked' not in st.session_state:
     st.session_state['next_clicked'] = False
 if 'categories_selected' not in st.session_state:
