@@ -21,7 +21,7 @@ if 'init_complete' not in st.session_state:
     st.switch_page('pages/cold_start.py')
 
 # --- Configuration ---
-openai_api_key = st.session_state['secrets']["openai_api_key"]
+openai_api_key = st.session_state['my_api_keys']["openai_api_key"]
 
 app_config = toml.load("config.toml")
 

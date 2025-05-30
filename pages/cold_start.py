@@ -16,9 +16,11 @@ if 'categories_selected' not in st.session_state:
     st.session_state['categories_selected'] = False
 
 if st.session_state.is_session_pc:
-    categories_size = 45
-else:
     categories_size = 25
+    accounts_size = 18
+else:
+    categories_size = 18
+    accounts_size = 12
 
 ready_to_continue = False
 
@@ -29,7 +31,7 @@ if not st.session_state['categories_selected']:
 
     selected_categories = sac.chip(items=[sac.ChipItem(label=category) for category in categories]
              ,label='Select 3-5 of your preferred categories', description='Select 3 to 5 categories',
-                                   size=categories_size, radius=40, color='grape', multiple=True)
+                                   size=categories_size, radius=28, color='grape', multiple=True)
 
 
     if len(selected_categories) > 5:
@@ -38,7 +40,7 @@ if not st.session_state['categories_selected']:
 
         if "Next" == sac.buttons([
             sac.ButtonsItem(label='Next', color='green', icon="caret-right", )
-        ], label="", size=25, radius=40, index=None):
+        ], label="", size=categories_size, radius=28, index=None):
 
             st.session_state['categories_selected'] = True
             st.session_state['selected_categories'] = selected_categories
@@ -64,8 +66,8 @@ if st.session_state['categories_selected']:
             items=chip_items,
             label=f'Select accounts to follow in {current_category} category:',
             align='left',
-            size=35,
-            radius=40,
+            size=accounts_size,
+            radius=28,
             color='orange',
             multiple=True
         )
@@ -82,7 +84,7 @@ if st.session_state['categories_selected']:
 
         if len(selected_accounts) > 0 and "Next" == sac.buttons([
                 sac.ButtonsItem(label='Next', color='green', icon="caret-right")
-            ], label="",size=25, radius=40, index=None):
+            ], label="",size=accounts_size, radius=28, index=None):
             st.session_state['selected_accounts'].extend(selected_accounts)
             if st.session_state['category_index'] < len(st.session_state['selected_categories']) :
                 st.session_state['category_index'] += 1

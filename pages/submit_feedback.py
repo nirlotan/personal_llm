@@ -18,7 +18,7 @@ def on_button_click():
     st.session_state.button_clicked = True  # Set the button as clicked
 
 if not firebase_admin._apps:
-    firebase_json = st.session_state['secrets']['freebase_certificate']
+    firebase_json = st.session_state['my_api_keys']['freebase_certificate']
     cred = credentials.Certificate(json.loads(firebase_json))
     # Initialize the Firebase app
     firebase_admin.initialize_app(cred, {
