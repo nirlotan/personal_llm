@@ -5,6 +5,25 @@ from utils.prepare_prompt import prepare_system_prompt
 import numpy as np
 
 
+@st.dialog("Categories Selection")
+def categories_popup():
+    st.write(f"Pick 3 to 5 topics that interest you most.")
+    st.badge("(Next, you’ll choose social media accounts related to those topics.)", color="gray")
+    # choose a few topics that interest you
+    if st.button("Confirm"):
+        st.session_state.confirm1 = True
+        st.rerun()
+
+@st.dialog("Accounts Selections")
+def accounts_popup():
+    st.write(f"For each topic, you’ll now choose 2 to 5 accounts you might find interesting to follow.")
+    if st.button("Confirm"):
+        st.session_state.confirm2 = True
+        st.rerun()
+
+if "confirm1" not in st.session_state:
+    categories_popup()
+
 if 'init_complete' not in st.session_state:
     sv, categories, accounts, my_keys, lm = load()
     st.session_state['sv'] = sv
@@ -20,18 +39,33 @@ else:
     my_keys = st.session_state['my_api_keys']
     lm = st.session_state['lm']
 
-
 if 'next_clicked' not in st.session_state:
     st.session_state['next_clicked'] = False
 if 'categories_selected' not in st.session_state:
     st.session_state['categories_selected'] = False
 
-if st.session_state.is_session_pc:
-    categories_size = 25
-    accounts_size = 18
-else:
-    categories_size = 18
-    accounts_size = 12
+
+def get_pc_mobile_sizes():
+    try:
+        # check user agent to suppress non-mandatory parts when running on mobile
+        ua_string = st_javascript("""window.navigator.userAgent;""")
+        user_agent = parse(ua_string)
+        st.session_state.is_session_pc = user_agent.is_pc
+    except:
+        st.session_state.is_session_pc = True
+
+    check_pc_mobile()
+
+    if st.session_state.is_session_pc:
+        categories_size = 25
+        accounts_size = 18
+    else:
+        categories_size = 18
+        accounts_size = 18
+
+    return categories_size, accounts_size
+
+categories_size, accounts_size = get_pc_mobile_sizes()
 
 ready_to_continue = False
 
@@ -41,7 +75,7 @@ if not st.session_state['categories_selected']:
     st.markdown("### Let's set you a profile...")
 
     selected_categories = sac.chip(items=[sac.ChipItem(label=category) for category in categories]
-             ,label='Select 3-5 of your preferred categories', description='Select 3 to 5 categories',
+             ,label='Select your preferred categories', description='(3 to 5 categories)',
                                    size=categories_size, radius=28, color='grape', multiple=True)
 
 
@@ -65,6 +99,9 @@ if st.session_state['categories_selected']:
     if 'selected_accounts' not in st.session_state:
         st.session_state['selected_accounts'] = []
 
+    if "confirm2" not in st.session_state:
+        accounts_popup()
+
     if st.session_state['category_index'] < len(st.session_state['selected_categories']):
 
 
@@ -84,13 +121,10 @@ if st.session_state['categories_selected']:
         )
 
         if st.session_state['category_index'] == len(st.session_state['selected_categories']) - 1:
-            st.session_state['chat_option'] = sac.checkbox(
-                items=[
-                    'Personalized Chat',
-                    'Personalized Random',
-                    'Not Personalized',
-                ],
-                label='Chat Option', index=[0], align='start'
+            st.session_state['chat_option']  = st.segmented_control(
+                "Chat Option (here for debug only)",
+                options=['Personalized Chat', 'Not Personalized' ],
+                selection_mode="single",
             )
 
         if len(selected_accounts) > 0 and "Next" == sac.buttons([
@@ -106,6 +140,6 @@ if st.session_state['categories_selected']:
         with st.spinner("Wait for it...", show_time=True):
             persona_details = pd.read_pickle('data/persona_details_v2.pkl')
             persona_details.drop_duplicates(subset='screen_name', inplace=True)
-            prepare_system_prompt(persona_details, mean_vector, st.session_state['chat_option'][0])
+            prepare_system_prompt(persona_details, mean_vector, st.session_state['chat_option'])
             st.session_state['clear_messages'] = True
             st.switch_page('pages/chat.py')

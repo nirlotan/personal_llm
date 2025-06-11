@@ -1,40 +1,27 @@
 import streamlit as st
 import streamlit_antd_components as sac
 from utils.utils import load
-from streamlit_javascript import st_javascript
-from user_agents import parse
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
+
 st.markdown("""
 
-### Experiment Overview – The Impact of Personalization on Large Language Models (LLM)
+### Personal Chat Experiment
+#### The Impact of Personalization on Large Language Models (LLM)
+Hey there, and thanks for joining!
 
-Hello and welcome,  
-Thank you for agreeing to participate in an experiment examining the effect of personalization on the user experience with Large Language Models (LLMs).
+You’re taking part in a study exploring how personalization affects the way people interact with large language models (LLMs).
 
-The experiment consists of three stages:
+**The experiment has three parts:**
+	1.	Pick a few topics you’re interested in, and accounts for each topic.
+	2.	Chat with a language model.
+	3.	Share your thoughts about the experience.
 
-1. **Selecting Interests** – In this stage, you will be asked to choose a few topics that interest you, and then select some social media accounts related to those topics — accounts you would be happy to follow.  
-2. **Conversation with a Language Model** – Next, you will engage in a conversation with a large language model, exchanging at least a few messages. During the conversation, feel free to explore a variety of interactions, such as asking for a recommendation, searching for a piece of information, or just casual chatting.  
-3. **Feedback on the Experience** – At the end of the conversation, you will be asked to complete a short questionnaire, consisting of 7 rating questions on a scale of 1 to 5, aimed at evaluating your experience interacting with the model.
+Everything is completely anonymous, and your responses will only be used for research.
 
-Participation in the experiment is anonymous, and all collected data will be used for research purposes only.
-
-#### The experiment will be conducted in English
-
-**Thank you very much for your cooperation and participation!**
+**We really appreciate your time and participation!**
 """, unsafe_allow_html=True)
-
-try:
-    # check user agent to suppress non-mandatory parts when running on mobile
-    ua_string = st_javascript("""window.navigator.userAgent;""")
-    user_agent = parse(ua_string)
-    st.session_state.is_session_pc = user_agent.is_pc
-except:
-    st.session_state.is_session_pc = True
-
-
 
 sv, categories, accounts, my_keys, lm = load()
 st.session_state['sv'] = sv

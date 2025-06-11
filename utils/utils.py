@@ -8,6 +8,8 @@ import numpy as np
 import dspy
 import toml
 from langchain.chains import LLMChain
+from streamlit_javascript import st_javascript
+from user_agents import parse
 
 categories_file_path = os.path.join("data","popular_accounts_manually_validated_with_sv.xlsx")
 
@@ -34,10 +36,20 @@ def load():
 
     accounts = accounts[['twitter_screen_name','twitter_user_id','twitter_name','use','twitter_desc','wikidata_label','wikidata_desc','wikidata_desc_np','category','sv']]
 
-    my_keys = toml.load("/etc/secrets/keys.toml")
+    #my_keys = toml.load("/etc/secrets/keys.toml")
+    my_keys = toml.load('/Users/nlotan/code/university/personal_llm/.streamlit/secrets.toml')
     lm = dspy.LM('openai/gpt-4o-mini', api_key=my_keys["openai_api_key"])
 
     return sv, categories, accounts, my_keys, lm
+
+def check_pc_mobile():
+    try:
+        # check user agent to suppress non-mandatory parts when running on mobile
+        ua_string = st_javascript("""window.navigator.userAgent;""")
+        user_agent = parse(ua_string)
+        st.session_state.is_session_pc = user_agent.is_pc
+    except:
+        st.session_state.is_session_pc = True
 
 def check_if_same_type(user_id, type):
     try:
@@ -94,7 +106,7 @@ class ClassifyRecommend(dspy.Signature):
     topic: Literal['TennisTournament', 'Mountain', 'TelevisionStation', 'FilmFestival', 'Scientist', 'Building', 'SpaceMission', 'IceHockeyLeague', 'Sport', 'Album', 'Musical', 'ShoppingMall', 'PokerPlayer', 'VoiceActor', 'RadioStation', 'NascarDriver', 'Single', 'SoccerLeague', 'MotorsportSeason', 'CanadianFootballLeague', 'CyclingRace', 'FormulaOneTeam', 'Theatre', 'Racecourse', 'ComedyGroup', 'Cardinal', 'Cricketer', 'Coach', 'Artist', 'Skater', 'TennisLeague', 'SoccerManager', 'Youtuber', 'Writer', 'AdultActor', 'School', 'BadmintonPlayer', 'MotorsportRacer', 'HorseRace', 'Presenter', 'Skier', 'AmusementParkAttraction', 'Anime', 'PoliticalParty', 'SoftballLeague', 'FootballLeagueSeason', 'RaceTrack', 'Journalist', 'Religious', 'MusicalArtist', 'Race', 'BusinessPerson', 'Olympics', 'Cinema', 'Airport', 'Election', 'Boxer', 'River', 'MusicGenre', 'ScreenWriter', 'BaseballTeam', 'Chef', 'SoccerTournament', 'ClassicalMusicArtist', 'SnookerPlayer', 'BeautyQueen', 'RadioHost', 'PeriodicalLiterature', 'RugbyLeague', 'SportsClub', 'EducationalInstitution', 'ChristianBishop', 'GolfCourse', 'AustralianFootballTeam', 'GridironFootballPlayer', 'RadioProgram', 'VolleyballPlayer', 'SnookerChamp', 'CollegeCoach', 'MusicalWork', 'ArtistDiscography', 'Food', 'Venue', 'Hotel', 'Dancer', 'Publisher', 'Convention', 'Insect', 'Tournament', 'Comedian', 'MartialArtist', 'Bank', 'Software', 'Broadcaster', 'AcademicJournal', 'Airline', 'RugbyPlayer', 'MixedMartialArtsLeague', 'HockeyTeam', 'MovieDirector', 'TelevisionShow', 'CricketTeam', 'Village', 'ProgrammingLanguage', 'BaseballPlayer', 'ComicsCreator', 'Museum', 'Library', 'GovernmentAgency', 'BasketballPlayer', 'Bodybuilder', 'Astronaut', 'FashionDesigner', 'FigureSkater', 'Winery', 'SpeedwayRider', 'Place', 'Restaurant', 'Newspaper', 'HollywoodCartoon', 'TennisPlayer', 'Fashion', 'Legislature', 'RugbyClub', 'SportsLeague', 'SoccerPlayer', 'Cleric', 'SportFacility', 'WrittenWork', 'Film', 'TelevisionHost', 'WomensTennisAssociationTournament', 'GolfTournament', 'Bird', 'BasketballTeam', 'SoccerClubSeason', 'AmericanFootballTeam', 'Surfer', 'HistoricBuilding', 'HistoricPlace', 'LacrosseLeague', 'Cyclist', 'NationalFootballLeagueEvent', 'Automobile', 'Producer', 'VideoGame', 'FictionalCharacter', 'SoccerClub', 'SocietalEvent', 'University', 'DartsPlayer', 'SportsEvent', 'Architect', 'ComicsCharacter', 'Swimmer', 'NCAATeamSeason', 'IceHockeyPlayer', 'BaseballLeague', 'Bridge', 'FormulaOneRacer', 'Politician', 'Game', 'Artwork', 'Beverage', 'Economist', 'Manga', 'Wrestler', 'SportsTeam', 'Magazine', 'BroadcastNetwork', 'Brewery', 'RacingDriver', 'Mayor', 'SportsManager', 'BeachVolleyballPlayer', 'AmericanFootballLeague', 'Curler', 'Lake', 'Model', 'CyclingTeam', 'WrestlingEvent', 'Book', 'AmericanFootballPlayer', 'WinterSportPlayer', 'Actor', 'Athlete', 'GolfPlayer', 'Gymnast', 'RecordLabel', 'MemberOfParliament', 'ArchitecturalStructure', 'Band', 'Governor', 'Rocket', 'Congressman', 'BasketballLeague'] = dspy.OutputField()
 
 class ClassifyInfoRequest(dspy.Signature):
-    """Classify if a sentence contains a request for general knowledge information (not personal information)"""
+    """Classify if a sentence contains a request for general knowledge or factual information (not personal information)"""
 
     sentence: str = dspy.InputField()
     is_info_request: bool = dspy.OutputField()
@@ -104,7 +116,7 @@ class ClassifyInfoRequest(dspy.Signature):
 class UserIntent(str, Enum):
     FRIENDLY_CHAT = "Friendly Chat"
     RECOMMENDATION = "Recommendation"
-    INFO_REQUEST = "Info Request"
+    INFO_REQUEST = "Factual Information Request"
     OTHER = "Other"
 
 
@@ -131,7 +143,7 @@ def get_user_intent(sentence):
 
 def get_recommendation(sv, topic):
     user_sv = st.session_state["user_embeddings"]
-    similar = new_get_similar(sv, user_sv, topic).head(7)
+    similar = new_get_similar(sv, user_sv, topic).head(10)
     return similar['name'].tolist()
 
 def is_info_request(sentence):

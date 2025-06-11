@@ -1,2 +1,42 @@
+[server]
+enableStaticServing = true
+
 [client]
 showSidebarNavigation = false
+
+#[theme]
+#primaryColor = "#E694FF"
+#backgroundColor = "#00172B"
+#secondaryBackgroundColor = "#0083B8"
+#textColor = "#DCDCDC"
+#font = "sans-serif"
+
+
+[[theme.fontFaces]]
+ family="tuffy"
+ url="app/static/TitilliumWeb-Regular.ttf"
+ style="normal"
+ weight=400
+ [[theme.fontFaces]]
+ family="tuffy"
+ url="app/static/TitilliumWeb-Bold.ttf"
+ style="normal"
+ weight=700
+ [[theme.fontFaces]]
+ family="tuffy"
+ url="app/static/TitilliumWeb-Italic.ttf"
+ style="italic"
+ weight=400
+ [[theme.fontFaces]]
+ family="tuffy"
+ url="app/static/TitilliumWeb-BoldItalic.ttf"
+ style="italic"
+ weight=700
+
+[theme]
+base="light"
+primaryColor="#10a37f"
+backgroundColor="#ffffff"
+secondaryBackgroundColor="#f0f2f6"
+textColor="#262730"
+font="tuffy"
