@@ -17,6 +17,16 @@ if "button_clicked" not in st.session_state:
 def on_button_click():
     st.session_state.button_clicked = True  # Set the button as clicked
 
+@st.dialog("Conversation with a Language Model")
+def feedback_popup():
+    st.write(f"Last, please share with us your feedback about your experience chatting with the bot.")
+    if st.button("Confirm"):
+        st.session_state.confirm4 = True
+        st.rerun()
+if "confirm4" not in st.session_state:
+    feedback_popup()
+
+
 if not firebase_admin._apps:
     firebase_json = st.session_state['my_api_keys']['freebase_certificate']
     cred = credentials.Certificate(json.loads(firebase_json))

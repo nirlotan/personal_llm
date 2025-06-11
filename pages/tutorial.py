@@ -13,14 +13,14 @@ Hey there, and thanks for joining!
 
 You’re taking part in a study exploring how personalization affects the way people interact with large language models (LLMs).
 
-**The experiment has three parts:**
-	1.	Pick a few topics you’re interested in, and accounts for each topic.
-	2.	Chat with a language model.
-	3.	Share your thoughts about the experience.
+**The experiment has three parts:**  \n
+> 1.	Pick a few topics you’re interested in, and accounts for each topic.
+> 2.	Chat with a language model.
+> 3.	Share your thoughts about the experience.
 
 Everything is completely anonymous, and your responses will only be used for research.
 
-**We really appreciate your time and participation!**
+**We appreciate your time and participation!**
 """, unsafe_allow_html=True)
 
 sv, categories, accounts, my_keys, lm = load()

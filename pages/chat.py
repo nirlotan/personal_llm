@@ -8,6 +8,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
 from utils.utils import *
+import js
 
 def split_before_last_marker(text, marker="._."):
     before, _, _ = text.rpartition(marker)
@@ -21,12 +22,18 @@ openai_api_key = st.session_state['my_api_keys']["openai_api_key"]
 
 app_config = toml.load("config.toml")
 
+
+def scroll_to_bottom(container_key):
+    """Scrolls the container to the bottom."""
+    js.scroll_to_bottom(container_key)
+
 @st.dialog("Conversation with a Language Model")
 def chat_popup():
     st.write(f"Next, you’ll chat with a large language model, exchanging a few messages.")
     st.write(f"Try interacting with the model by:  \n 1. having a **casual conversation,**  \n 2. asking for **recommendations,**  \n 3. and looking up **actual information.**")
+    st.badge("**Suggestion:** Try asking the bot: _'Tell me about yourself_'...", icon="💡", color="green")
     if st.button("Confirm"):
-        st.session_state.confirm2 = True
+        st.session_state.confirm3 = True
         st.rerun()
 if "confirm3" not in st.session_state:
     chat_popup()
@@ -89,7 +96,8 @@ with bottom():
     user_prompt = st.chat_input(placeholder="Type your message:")
 
 # --- Handling User Prompt ---
-with st.container():
+container_key = "chat_container"
+with st.container(key=container_key):
     if user_prompt:
         st.chat_message("human", avatar ="🐨").write(user_prompt)
 
@@ -125,15 +133,12 @@ with st.container():
                 message_placeholder.write(f"Typing{dots}")
                 time.sleep(0.5)
             message_placeholder.write(response.content)
+            # After adding the message, scroll to the bottom
             st.markdown(
-                """
-                <script>
-                    var chatContainer = document.querySelector('.stChatContainer'); // Or your CSS selector
-                    if (chatContainer) {
-                        chatContainer.scrollTop = chatContainer.scrollHeight;
-                    }
-                </script>
-                """,
+                """<script>
+                var chat = window.parent.document.querySelector('section.main');
+                chat.scrollTop = chat.scrollHeight;
+                </script>""",
                 unsafe_allow_html=True
             )
 
