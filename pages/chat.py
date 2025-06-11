@@ -8,7 +8,6 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
 from utils.utils import *
-import js
 
 def split_before_last_marker(text, marker="._."):
     before, _, _ = text.rpartition(marker)
@@ -21,11 +20,6 @@ if 'init_complete' not in st.session_state:
 openai_api_key = st.session_state['my_api_keys']["openai_api_key"]
 
 app_config = toml.load("config.toml")
-
-
-def scroll_to_bottom(container_key):
-    """Scrolls the container to the bottom."""
-    js.scroll_to_bottom(container_key)
 
 @st.dialog("Conversation with a Language Model")
 def chat_popup():
@@ -90,57 +84,43 @@ for msg in msgs.messages:
     message = split_before_last_marker(msg.content) if msg.type=="human" else msg.content
     st.chat_message(msg.type, avatar=avt).write(message)
 
-# --- Bottom input section ---
-with bottom():
-    # User free text input
-    user_prompt = st.chat_input(placeholder="Type your message:")
-
 # --- Handling User Prompt ---
-container_key = "chat_container"
-with st.container(key=container_key):
-    if user_prompt:
-        st.chat_message("human", avatar ="🐨").write(user_prompt)
+
+if user_prompt := st.chat_input(placeholder="Type your message:"):
+    st.chat_message("human", avatar ="🐨").write(user_prompt)
 
 
-        user_intent = get_user_intent(user_prompt)
-        if user_intent['intent'].value in ["Friendly Chat", "Recommendation", "Factual Information Request"]:
-            st.session_state['chat_status'][user_intent['intent']]=1
+    user_intent = get_user_intent(user_prompt)
+    if user_intent['intent'].value in ["Friendly Chat", "Recommendation", "Factual Information Request"]:
+        st.session_state['chat_status'][user_intent['intent']]=1
 
-        #st.toast(user_intent['intent'])
-        if user_intent['intent']=="Recommendation":
-            if user_intent['topic']:
-                rec_list = get_recommendation(sv, user_intent['topic'])
-                extended_user_prompt = f"{user_prompt}._. If relevant, try to recommend from: {rec_list}, but try to suggest unique and interesting recommendations. Be concise (under 100 words)."
-                #st.toast(f"{user_intent['topic']}, {rec_list}")
+    #st.toast(user_intent['intent'])
+    if user_intent['intent']=="Recommendation":
+        if user_intent['topic']:
+            rec_list = get_recommendation(sv, user_intent['topic'])
+            extended_user_prompt = f"{user_prompt}._. If relevant, try to recommend from: {rec_list}, but try to suggest unique and interesting recommendations. Be concise (under 100 words)."
+            #st.toast(f"{user_intent['topic']}, {rec_list}")
 
-        elif user_intent['intent'] == "Factual Information Request":
-            st.toast("Factual Information Request")
-            extended_user_prompt = user_prompt + "._. When you provide the information requested, consider your personal perspective based on your topics of interest, and emphasize it if relevant."
-        else:
-            extended_user_prompt = user_prompt + "._. Be concise (under 100 words)"
+    elif user_intent['intent'] == "Factual Information Request":
+        #st.toast("Factual Information Request")
+        extended_user_prompt = user_prompt + "._. When you provide the information requested, consider your personal perspective based on your topics of interest, and emphasize it if relevant."
+    else:
+        extended_user_prompt = user_prompt + "._. Be concise (under 100 words)"
 
 
-        # Generate model response
-        config = {"configurable": {"session_id": "any"}}
-        response = chain_with_history.invoke({"sentence": extended_user_prompt}, config)
+    # Generate model response
+    config = {"configurable": {"session_id": "any"}}
+    response = chain_with_history.invoke({"sentence": extended_user_prompt}, config)
 
-        # Simulate typing animation
-        with st.chat_message("ai", avatar ="🐼"):
-            message_placeholder = st.empty()
-            length_of_wait = int(len(response.content) / 40)
-            for i in range(length_of_wait):
-                dots = "." * (i % 4)
-                message_placeholder.write(f"Typing{dots}")
-                time.sleep(0.5)
-            message_placeholder.write(response.content)
-            # After adding the message, scroll to the bottom
-            st.markdown(
-                """<script>
-                var chat = window.parent.document.querySelector('section.main');
-                chat.scrollTop = chat.scrollHeight;
-                </script>""",
-                unsafe_allow_html=True
-            )
+    # Simulate typing animation
+    with st.chat_message("ai", avatar ="🐼"):
+        message_placeholder = st.empty()
+        length_of_wait = int(len(response.content) / 40)
+        for i in range(length_of_wait):
+            dots = "." * (i % 4)
+            message_placeholder.write(f"Typing{dots}")
+            time.sleep(0.5)
+        message_placeholder.write(response.content)
 
 
 with bottom():
