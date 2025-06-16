@@ -8,6 +8,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
 from utils.utils import *
+import streamlit.components.v1 as components
 
 def split_before_last_marker(text, marker="._."):
     before, _, _ = text.rpartition(marker)
@@ -78,11 +79,27 @@ chain_with_history = RunnableWithMessageHistory(
     history_messages_key="history",
 )
 
+# --- Add a dummy anchor and scroll to it ---
+scroll_to_bottom = """
+    <div id="scroll-anchor"></div>
+    <script>
+        var anchor = document.getElementById("scroll-anchor");
+        if (anchor) {
+            anchor.scrollIntoView({behavior: "smooth"});
+        }
+    </script>
+"""
+components.html(scroll_to_bottom, height=0)
+
+
 # --- Render previous messages ---
 for msg in msgs.messages:
     avt = "🐨" if msg.type=="human" else "🐼"
     message = split_before_last_marker(msg.content) if msg.type=="human" else msg.content
     st.chat_message(msg.type, avatar=avt).write(message)
+
+    # Re-scroll to bottom after new message
+    components.html(scroll_to_bottom, height=0)
 
 # --- Handling User Prompt ---
 
@@ -121,6 +138,9 @@ if user_prompt := st.chat_input(placeholder="Type your message:"):
             message_placeholder.write(f"Typing{dots}")
             time.sleep(0.5)
         message_placeholder.write(response.content)
+
+        # Re-scroll to bottom after new message
+        components.html(scroll_to_bottom, height=0)
 
 
 with bottom():
