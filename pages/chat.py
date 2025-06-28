@@ -26,7 +26,8 @@ app_config = toml.load("config.toml")
 def chat_popup():
     st.write(f"Next, you’ll chat with a large language model, exchanging a few messages.")
     st.write(f"Try interacting with the model by:  \n 1. having a **casual conversation,**  \n 2. asking for **recommendations,**  \n 3. and looking up **actual information.**")
-    st.badge("**Suggestion:** Try asking the bot: _'Tell me about yourself_'...", icon="💡", color="green")
+    st.write(f"You can pass to the next phase after trying all these types of interactions, of after a minimal number of messages.")
+    st.badge("**Suggestion:** Try to exchange opinions with the chatbot!", icon="💡", color="green")
     if st.button("Confirm"):
         st.session_state.confirm3 = True
         st.rerun()
@@ -156,10 +157,7 @@ if user_prompt := st.chat_input(placeholder="Type your message:"):
 
 with bottom():
 
-    st.write(st.session_state['messages_timing'])
-
     # Dynamic button options
-    st.caption("Complete the following tasks in order to be able to move to the next step:")
     buttons_list = []
     chat_status_indexes = [i for i, (k, v) in enumerate(st.session_state['chat_status'].items()) if v == 1]
 
@@ -175,6 +173,7 @@ with bottom():
 
     enable_feedback = msgs_len >= app_config['minimal_number_of_messages'] or all(
         v == 1 for v in st.session_state['chat_status'].values())
+    enable_feedback = True
     if enable_feedback:
         buttons_list.append(
             sac.ButtonsItem(label="I'm done, let's go to the feedback section", color='#25C3B0', icon="caret-right")

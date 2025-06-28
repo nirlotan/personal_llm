@@ -1,8 +1,7 @@
-﻿label,description
-Engagement,"How engaging did you find the LLM’s personality or style of conversation? (Scale: 1 = Not engaging at all, 5 = Very engaging and enjoyable to talk to)"
-Perception,"How natural or human-like did the LLM’s personality seem during the conversation? (1 = Robotic or awkward, 5 = Very natural and human-like)"
-Would Use Again,"Would you prefer to use this LLM again specifically because of its personality or style? (1 = Definitely not, 5 = Definitely yes)"
-Perceived Personality,"How would you rate the LLM’s personality (e.g., friendly, witty, warm)? (1 = No personality / flat, 5 = Strong and enjoyable personality)"
-Emotional Connection,"Did you feel any emotional connection to the LLM during the interaction? (Scale: 1 = Not at all, 5 = Strong emotional connection)"
-Social Presence,"Did it feel like you were having a conversation with a person rather than a machine? (Scale: 1 = Clearly a machine, 5 = Felt human-like)"
-Impact on Usefulness,"How much did the LLM’s personality improve the usefulness of the interaction? (Scale: 1 = Not at all, 5 = Greatly improved it)"
+﻿short_label,label,description,Justification,Aim
+Perception,"<strong>Perception</strong> - To what extent does the persona feel like a realistic, human-like character?","(1 = Clearly a machine, 5 = Natural and human-like)","Moussawi et al., PPS",
+Relatability,"<strong>Relatability</strong> - To what extent did you feel a personal connection or sense of relatability with this persona, compared to general chatbots?","(1 = No connection at all, 5 = Strong connection)",,
+Appropriateness,"<strong>Appropriateness</strong> - Did the chatbot’s responses reflect a consistent, persona-specific knowledge or way of thinking?","(1 = Not at all, 5 = Completely)",Moussawi et al. (perceived intelligence),Usefulness in the context of informative query
+Relevance,<strong>Relevance</strong> - Did you find the agent’s recommendations and conversation topics relevant or interesting to you?,"(1 = Not at all relevant, 5 = Very relevant)",,Check recommendation usefulness
+Engagement,"<strong>Engagement</strong> - Did this persona add to your enjoyment or engagement, compared to chatting with a plain or non-personalized chatbot?","(1 = Not at all, 5 = Definitely made it more enjoyable)","CloChat, PPS, CloChat, PPS",check this specific persona versus other persona or no persona at all
+Usefulness,<strong>Usefulness</strong> - How much did the chatbot's personality improve the usefulness of the interaction?,"(1 = Not at all, 5 = Greatly improved it)",,
