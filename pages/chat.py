@@ -173,7 +173,7 @@ with bottom():
 
     enable_feedback = msgs_len >= app_config['minimal_number_of_messages'] or all(
         v == 1 for v in st.session_state['chat_status'].values())
-    enable_feedback = True
+
     if enable_feedback:
         buttons_list.append(
             sac.ButtonsItem(label="I'm done, let's go to the feedback section", color='#25C3B0', icon="caret-right")
