@@ -55,9 +55,15 @@ if not st.session_state.button_clicked:
         st.session_state['system_message'] = None
 
     survey_data = {questions['label'].iloc[index]: value for index, value in enumerate(responses)}
-    survey_data.update({"profile": st.session_state['system_message'],
-                        "chat": [f"{d.type}: {d.content}" for d in st.session_state['chat_messages']]})
-    # [f"{d.type}: {d.content}" for d in survey_data["chat"]]
+    survey_data.update({
+        "user_selected_categories": st.session_state['selected_categories'],
+        "user_selected_accounts": st.session_state['selected_accounts'],
+        "user_selected_for_chat": st.session_state['user_for_the_chat'],
+        "selected_user_similarity" : st.session_state['selected_user_similarity'],
+        "system_message": st.session_state['system_message'],
+        "chat": [f"{d.type}: {d.content}" for d in st.session_state['chat_messages']],
+        "messages_timing": st.session_state['messages_timing'],},)
+
 
     with bottom():
         next_button = sac.buttons([

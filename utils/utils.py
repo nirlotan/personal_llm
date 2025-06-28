@@ -13,12 +13,6 @@ from user_agents import parse
 
 categories_file_path = os.path.join("data","popular_accounts_manually_validated_with_sv.xlsx")
 
-def fix_and_parse_array(s):
-    # Remove outer brackets, split by whitespace, and convert to float
-    s = s.strip()[1:-1]  # remove the square brackets
-    numbers = [float(x) for x in s.split()]
-    return np.array(numbers)
-
 @st.cache_resource
 def load():
     sv = SocialVec()
@@ -30,7 +24,7 @@ def load():
         df_rec['category'] = sheet
         accounts = pd.concat([accounts,df_rec])
 
-    accounts['sv'] = accounts['sv'].apply(fix_and_parse_array)
+    accounts['sv'] = accounts['sv'].apply(lambda x: np.fromstring(str(x).strip('[]'), sep=' '))
     df_dbpedia = pd.read_csv('data/dbpedia_types.csv')
     sv.entities = pd.merge(sv.entities,df_dbpedia, on='screen_name', how='left')
 
@@ -83,7 +77,6 @@ def new_get_similar(sv, input: str, etype: str, topn: int = 10):
         input = input
 
     sim = sv.sv.wv.most_similar(input, topn=50000)
-
 
     similar = pd.DataFrame(sim, columns=['twitter_id', 'similarity'])
     similar = pd.merge(similar, sv.entities, on='twitter_id', how='left')

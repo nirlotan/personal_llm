@@ -20,6 +20,8 @@ def prepare_system_prompt(persona_details, mean_vector, chat_option):
         #user_description += f"You describe youself as: {user_for_the_chat['description']}.\n"
         #user_description += f"Additional details: {user_for_the_chat['persona_description']}.\n"
 
+        st.session_state['user_for_the_chat'] = user_for_the_chat['screen_name']
+        st.session_state['selected_user_similarity'] = user_for_the_chat['similarity']
         st.session_state['user_embeddings'] = np.array(user_for_the_chat['sv'])
         st.session_state['is_personalized_chat'] = True
 

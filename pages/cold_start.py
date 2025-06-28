@@ -16,7 +16,7 @@ def categories_popup():
 
 @st.dialog("Accounts Selections")
 def accounts_popup():
-    st.write(f"For each topic, you’ll now choose 2 to 5 accounts you might find interesting to follow.")
+    st.write(f"For each topic choose 3 to 5 social media accounts you find interesting to follow.")
     if st.button("Confirm"):
         st.session_state.confirm2 = True
         st.rerun()
@@ -32,6 +32,7 @@ if 'init_complete' not in st.session_state:
     st.session_state['my_api_keys'] = my_keys
     st.session_state['lm'] = lm
     st.session_state['init_complete'] = True
+    st.session_state['messages_timing'] = []
 else:
     sv = st.session_state['sv']
     categories = st.session_state['categories']
@@ -120,20 +121,19 @@ if st.session_state['categories_selected']:
             multiple=True
         )
 
-        if st.session_state['category_index'] == len(st.session_state['selected_categories']) - 1:
-            st.session_state['chat_option']  = st.segmented_control(
-                "Chat Option (here for debug only)",
-                options=['Personalized Chat', 'Not Personalized' ],
-                selection_mode="single",
-            )
+        st.session_state['chat_option'] = 'Personalized Chat'
 
-        if len(selected_accounts) > 0 and "Next" == sac.buttons([
+        if len(selected_accounts) < 3 or len(selected_accounts) > 5:
+            st.caption("Select 3 to 5 accounts.")
+
+        if len(selected_accounts) >= 3 and len(selected_accounts)<=5 and "Next" == sac.buttons([
                 sac.ButtonsItem(label='Next', color='green', icon="caret-right")
             ], label="",size=accounts_size, radius=28, index=None):
             st.session_state['selected_accounts'].extend(selected_accounts)
             if st.session_state['category_index'] < len(st.session_state['selected_categories']) :
                 st.session_state['category_index'] += 1
                 st.rerun()
+
     else:
         un = accounts[accounts['twitter_name'].isin(st.session_state['selected_accounts'])]
         mean_vector = np.mean(np.stack(un['sv'].values), axis=0)

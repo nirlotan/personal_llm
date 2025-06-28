@@ -19,8 +19,8 @@ if 'init_complete' not in st.session_state:
 
 # --- Configuration ---
 openai_api_key = st.session_state['my_api_keys']["openai_api_key"]
-
 app_config = toml.load("config.toml")
+
 
 @st.dialog("Conversation with a Language Model")
 def chat_popup():
@@ -30,15 +30,12 @@ def chat_popup():
     if st.button("Confirm"):
         st.session_state.confirm3 = True
         st.rerun()
-if "confirm3" not in st.session_state:
-    chat_popup()
 
 if 'chat_status' not in st.session_state:
     st.session_state['chat_status'] = {"Friendly Chat": 0,
                                        "Recommendation": 0,
                                        "Factual Information Request" : 0
                                         }
-
 
 # --- Load session data ---
 
@@ -47,7 +44,6 @@ if 'system_message' not in st.session_state:
 system_message = st.session_state['system_message']
 
 sv = st.session_state['sv']
-categories = st.session_state['categories']
 
 # --- Set up message history ---
 msgs = StreamlitChatMessageHistory(key="langchain_messages")
@@ -79,6 +75,21 @@ chain_with_history = RunnableWithMessageHistory(
     history_messages_key="history",
 )
 
+if "confirm3" not in st.session_state:
+    chat_popup()
+
+if 'injected_first_message' not in st.session_state:
+    injected_message = "Introduce yourself. Tell the user to feel free to ask you questions and guide the user to have a friendly chat with you, ask for recommendations and factual information questions."
+    config = {"configurable": {"session_id": "any"}}
+    response = chain_with_history.invoke({"sentence": injected_message}, config)
+    with st.chat_message("ai", avatar="🐼"):
+        message_placeholder = st.empty()
+        message_placeholder.write(response.content)
+    st.session_state['injected_first_message'] = True
+
+if 'last_system_message_time' not in st.session_state:
+    st.session_state['last_system_message_time'] = time.time()
+
 # --- Add a dummy anchor and scroll to it ---
 scroll_to_bottom = """
     <div id="scroll-anchor"></div>
@@ -93,7 +104,7 @@ components.html(scroll_to_bottom, height=0)
 
 
 # --- Render previous messages ---
-for msg in msgs.messages:
+for msg in msgs.messages[1:]:
     avt = "🐨" if msg.type=="human" else "🐼"
     message = split_before_last_marker(msg.content) if msg.type=="human" else msg.content
     st.chat_message(msg.type, avatar=avt).write(message)
@@ -105,7 +116,9 @@ for msg in msgs.messages:
 
 if user_prompt := st.chat_input(placeholder="Type your message:"):
     st.chat_message("human", avatar ="🐨").write(user_prompt)
+    st.session_state['messages_timing'].append(round(time.time() - st.session_state['last_system_message_time']))
 
+    extended_user_prompt = user_prompt + "._. Be concise (under 100 words)"
 
     user_intent = get_user_intent(user_prompt)
     if user_intent['intent'].value in ["Friendly Chat", "Recommendation", "Factual Information Request"]:
@@ -120,10 +133,7 @@ if user_prompt := st.chat_input(placeholder="Type your message:"):
 
     elif user_intent['intent'] == "Factual Information Request":
         #st.toast("Factual Information Request")
-        extended_user_prompt = user_prompt + "._. When you provide the information requested, consider your personal perspective based on your topics of interest, and emphasize it if relevant."
-    else:
-        extended_user_prompt = user_prompt + "._. Be concise (under 100 words)"
-
+        extended_user_prompt = user_prompt + "._. When you provide the information requested, consider your personal perspective based on your topics of interest and emphasize it if relevant."
 
     # Generate model response
     config = {"configurable": {"session_id": "any"}}
@@ -141,11 +151,15 @@ if user_prompt := st.chat_input(placeholder="Type your message:"):
 
         # Re-scroll to bottom after new message
         components.html(scroll_to_bottom, height=0)
+        st.session_state['last_system_message_time'] = time.time()
 
 
 with bottom():
 
+    st.write(st.session_state['messages_timing'])
+
     # Dynamic button options
+    st.caption("Complete the following tasks in order to be able to move to the next step:")
     buttons_list = []
     chat_status_indexes = [i for i, (k, v) in enumerate(st.session_state['chat_status'].items()) if v == 1]
 
@@ -156,7 +170,7 @@ with bottom():
                 'Recommendation',
                 'Factual Information Request',
             ],
-            label='', index=chat_status_indexes, align='left', size='lg', disabled=True
+            label='Complete the following tasks in order to be able to move to the next step:', index=chat_status_indexes, align='left', size='lg', disabled=True
         )
 
     enable_feedback = msgs_len >= app_config['minimal_number_of_messages'] or all(
