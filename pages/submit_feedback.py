@@ -17,6 +17,10 @@ if "button_clicked" not in st.session_state:
 def on_button_click():
     st.session_state.button_clicked = True  # Set the button as clicked
 
+def on_text_change():
+    st.session_state.output = f"You typed: {st.session_state.my_text}"
+
+
 @st.dialog("Conversation with a Language Model")
 def feedback_popup():
     st.write(f"Now please share with us your feedback about your experience chatting with the bot.")
@@ -53,6 +57,10 @@ if not st.session_state.button_clicked:
     if 'system_message' not in st.session_state:
         st.session_state['system_message'] = None
 
+    txt = st.text_area("Additional Feedback (Optional)",
+                        key="my_text",
+                        on_change = on_text_change)
+
     survey_data = {
         "unique_session_id" : st.session_state['unique_session_id'],
         "user_selected_categories": st.session_state['selected_categories'],
@@ -62,26 +70,27 @@ if not st.session_state.button_clicked:
         "system_message": st.session_state['system_message'],
         "chat": [f"{d.type}: {d.content}" for d in st.session_state['chat_messages']],
         "messages_timing": st.session_state['messages_timing'],
-        "user_feedback": {questions['short_label'].iloc[index]: value for index, value in enumerate(responses)}}
-
+        "user_feedback": {questions['short_label'].iloc[index]: value for index, value in enumerate(responses)},
+        "free_text_feedback": txt
+    }
 
     st.session_state['number_of_feedbacks_provided'] += 1
 
 
-    with bottom():
+   # with bottom():
 
-        if 0 in responses:
-            st.caption("You must provide your feedback on all categories in order to proceed.")
-        else:
-            next_button = sac.buttons([
-                sac.ButtonsItem(label='Submit Survey', color='#25C3B0', icon="send")
-            ], label="", index=None, color='violet', variant='filled')
+    if 0 in responses:
+        st.caption("You must provide your feedback on all categories in order to proceed.")
+    else:
+        next_button = sac.buttons([
+            sac.ButtonsItem(label='Submit Survey', color='#25C3B0', icon="send")
+        ], label="", index=None, color='violet', variant='filled')
 
-            if next_button == 'Submit Survey':
-                # Save survey results to Firebase (generating a new key under 'survey_results')
-                ref.push(survey_data)
-                on_button_click()
-                st.success("Thank you for submitting the survey!")
+        if next_button == 'Submit Survey':
+            # Save survey results to Firebase (generating a new key under 'survey_results')
+            ref.push(survey_data)
+            on_button_click()
+            st.success("Thank you for submitting the survey!")
 
 else:
     st.error("Survey can only be sumbitted once.")

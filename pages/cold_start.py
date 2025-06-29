@@ -3,8 +3,6 @@ from utils.utils import *
 from utils.lang_utils import *
 from utils.prepare_prompt import prepare_system_prompt
 import numpy as np
-import uuid
-
 
 @st.dialog("Categories Selection")
 def categories_popup():
@@ -32,10 +30,10 @@ if 'init_complete' not in st.session_state:
     st.session_state['accounts'] = accounts
     st.session_state['my_api_keys'] = my_keys
     st.session_state['lm'] = lm
-    st.session_state['init_complete'] = True
     st.session_state['messages_timing'] = []
-    st.session_state['unique_session_id'] = str(uuid.uuid4())
     st.session_state['number_of_feedbacks_provided'] = 0
+    set_user_guid()
+    st.session_state['init_complete'] = True
 else:
     sv = st.session_state['sv']
     categories = st.session_state['categories']

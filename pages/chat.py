@@ -28,6 +28,7 @@ def chat_popup():
     st.write(f"Try interacting with the model by:  \n 1. having a **casual conversation,**  \n 2. asking for **recommendations,**  \n 3. and looking up **actual information.**")
     st.write(f"You can pass to the next phase after trying all these types of interactions, of after a minimal number of messages.")
     st.badge("**Suggestion:** Try to exchange opinions with the chatbot!", icon="💡", color="green")
+    st.badge("**Note:** Read the chatbot messages!", icon="👉", color="orange")
     if st.button("Confirm"):
         st.session_state.confirm3 = True
         st.rerun()
@@ -168,10 +169,10 @@ with bottom():
                 'Recommendation',
                 'Factual Information Request',
             ],
-            label='Complete the following tasks in order to be able to move to the next step:', index=chat_status_indexes, align='left', size='lg', disabled=True
+            label='You need to write at least 5 messages to move to the next phase.<br>Try to complete the following tasks:', index=chat_status_indexes, align='left', size='lg', disabled=True
         )
 
-    enable_feedback = msgs_len >= app_config['minimal_number_of_messages'] or all(
+    enable_feedback = msgs_len >= app_config['minimal_number_of_messages'] and all(
         v == 1 for v in st.session_state['chat_status'].values())
 
     if enable_feedback:

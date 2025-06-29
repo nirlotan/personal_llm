@@ -2,14 +2,10 @@ import os
 
 import streamlit as st
 import streamlit_antd_components as sac
-from utils.utils import load
+from utils.utils import load, set_user_guid
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
-
-#gif_placeholder = st.empty()
-#with gif_placeholder:
-    #st.image("static/loading.gif")
 import time
 with st.spinner("Loading... Please wait..."):
     sv, categories, accounts, my_keys, lm = load()
@@ -21,9 +17,10 @@ st.session_state['categories'] = categories
 st.session_state['accounts'] = accounts
 st.session_state['my_api_keys'] = my_keys
 st.session_state['lm'] = lm
+st.session_state['messages_timing'] = []
+st.session_state['number_of_feedbacks_provided'] = 0
+set_user_guid()
 st.session_state['init_complete'] = True
-
-
 
 st.markdown("""
 

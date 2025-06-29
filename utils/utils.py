@@ -10,6 +10,7 @@ import toml
 from langchain.chains import LLMChain
 from streamlit_javascript import st_javascript
 from user_agents import parse
+import uuid
 
 categories_file_path = os.path.join("data","popular_accounts_manually_validated_with_sv.xlsx")
 
@@ -34,6 +35,17 @@ def load():
     lm = dspy.LM('openai/gpt-4o-mini', api_key=my_keys["openai_api_key"])
 
     return sv, categories, accounts, my_keys, lm
+
+def set_user_guid():
+    if 'unique_session_id' not in st.session_state:
+        if "PROLIFIC_PID" in st.query_params:
+            st.session_state['unique_session_id'] = st.query_params["PROLIFIC_PID"]
+        else:
+            st.session_state['unique_session_id'] = str(uuid.uuid4())
+    return
+
+
+
 
 def check_pc_mobile():
     try:
