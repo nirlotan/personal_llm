@@ -15,7 +15,8 @@ if not st.session_state['messages_timing']:
 @st.dialog("Conversation with a Language Model")
 def chat_popup():
     st.write(f"Next, you’ll chat with a large language model, exchanging a few messages.")
-    st.write(f"Try interacting with the model by:  \n 1. having a **casual conversation,**  \n 2. asking for **recommendations,**  \n 3. and looking up **actual information.**")
+    st.write(f"**This is the first chatbot out of 2 chatbos.**")
+    st.write(f"Try to complete these tasks:  \n 1. Have a **casual conversation,**  \n 2. Ask for **recommendations,**  \n 3. Request **factual information.**")
     st.write(f"You can pass to the next phase after trying all these types of interactions, of after a minimal number of messages.")
     st.badge("**Suggestion:** Try to exchange opinions with the chatbot!", icon="💡", color="green")
     st.badge("**Note:** Read the chatbot messages!", icon="👉", color="orange")
@@ -25,7 +26,7 @@ def chat_popup():
 
 @st.dialog("We're almost there...")
 def second_chat_popup():
-    st.write(f"One more chat (with a different bot) and then we'll get your feedback on this bot, and you are done!")
+    st.write(f"**One more chat** (with a different bot), and after getting your feedback on this bot - you are done!")
     if st.button("Confirm"):
         st.session_state.second_chat_confirm = True
         st.rerun()
@@ -56,6 +57,8 @@ with bottom():
     app_config = toml.load("config.toml")
     chat_status_indexes = [i for i, (k, v) in enumerate(st.session_state['chat_status'].items()) if v == 1]
 
+    msgs_len = st.session_state['first_chat'].get_messages_len()
+
     if st.session_state.is_session_pc:
         sac.checkbox(
             items=[
@@ -63,11 +66,11 @@ with bottom():
                 'Recommendation',
                 'Factual Information Request',
             ],
-            label=f'You need to write at least {app_config["minimal_number_of_messages"]} messages to move to the next phase.<br>Try to complete the following tasks:',
+            label=f'You need to write {app_config["minimal_number_of_messages"] - msgs_len - 1} more messages to move to the next phase.<br>Try to complete the following tasks:',
             index=chat_status_indexes, align='left', size='lg', disabled=True
         )
 
-    msgs_len = st.session_state['first_chat'].get_messages_len()
+
     enable_feedback = msgs_len >= app_config['minimal_number_of_messages'] and all(
         v == 1 for v in st.session_state['chat_status'].values())
 

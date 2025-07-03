@@ -7,10 +7,6 @@ import streamlit_antd_components as sac
 from firebase_admin import credentials, db
 from datetime import datetime
 
-def on_text_change():
-    st.session_state.output = f"You typed: {st.session_state.my_text}"
-
-
 class FeedbackObject():
     def __init__(self):
         if not firebase_admin._apps:
@@ -22,7 +18,7 @@ class FeedbackObject():
             })
 
         # Reference to the Firebase Realtime Database
-        self.ref = db.reference("/survey_results_friends", app=firebase_admin.get_app(),
+        self.ref = db.reference("/survey_results_1", app=firebase_admin.get_app(),
                            url="https://socialai-00007-default-rtdb.firebaseio.com/")
         self.survey_data = {}
 
@@ -43,8 +39,7 @@ class FeedbackObject():
             st.session_state['system_message'] = None
 
         txt = st.text_area("Additional Feedback (Optional)",
-                           key="my_text",
-                           on_change=on_text_change)
+                           key="my_text")
 
         self.survey_data = {
             "date_time": str(datetime.now()),

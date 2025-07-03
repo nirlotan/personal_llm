@@ -78,14 +78,14 @@ class ChatSessionClass:
         if user_intent['intent'] == "Recommendation":
             if user_intent['topic']:
                 rec_list = get_recommendation(self.sv, user_intent['topic'])
-                extended_user_prompt = f"{user_prompt}._. If relevant, try to recommend from: {rec_list}, but try to suggest unique and interesting recommendations. Be concise (under 100 words)."
+                extended_user_prompt = f"{user_prompt}._. If relevant, try to recommend from: {rec_list}, but try to suggest unique and interesting recommendations. Be specific and concise. Don't chatter and keep your answer to be under 100 words."
             else:
-                extended_user_prompt = user_prompt + "._. Be concise (under 100 words)"
+                extended_user_prompt = user_prompt + "._. Be specific and concise. Don't chatter and keep your answer to be under 100 words."
         elif user_intent['intent'] == "Factual Information Request":
             # st.toast("Factual Information Request")
-            extended_user_prompt = user_prompt + "._. When you provide the information requested, consider your personal perspective based on your topics of interest and emphasize it if relevant."
+            extended_user_prompt = user_prompt + "._. As part of providing the information requested, integrate your personal perspective, based on your topics of interest."
         else:
-            extended_user_prompt = user_prompt + "._. Be concise (under 100 words)"
+            extended_user_prompt = user_prompt + "._. Be specific and concise. Don't chatter and keep your answer to be under 100 words."
         return extended_user_prompt
 
     def chat_session(self):

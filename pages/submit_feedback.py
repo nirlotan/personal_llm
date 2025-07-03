@@ -18,7 +18,8 @@ if 'init_complete' not in st.session_state:
 
 @st.dialog("Feedback")
 def feedback_popup():
-    st.write(f"Now please share with us your feedback about your experience chatting with this specific chatbot.")
+    st.write(f"Now please share with us your feedback about your experience chatting with **the first chatbot**.")
+    st.write(f"**After the feebdack you'll be asked to chat with another (different) chatbot.**")
     if st.button("Confirm"):
         st.session_state.confirm4 = True
         st.rerun()

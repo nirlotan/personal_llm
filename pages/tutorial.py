@@ -18,8 +18,8 @@ You’re taking part in a study exploring how personalization affects the way pe
 
 **The experiment has the following parts:**  \n
 > 1.	Pick a few topics you’re interested in, and social media accounts for each topic.
-> 2.	You'll be asked to chat with two seperate language models.
-> 3.	After chatting with each of the two models you'll be asked a few questions about the experience.
+> 2.	You'll be asked to chat with **two seperate language models**.
+> 3.	After chatting **with each of the models** you'll be asked a few questions about the experience.
 
 Everything is completely anonymous, and your responses will only be used for research.
 

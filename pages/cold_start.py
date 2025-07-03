@@ -67,18 +67,20 @@ if not st.session_state['categories_selected']:
              ,label='Select your preferred categories', description='(3 to 5 categories)',
                                    size=categories_size, radius=28, color='grape', multiple=True)
 
+    category_selection_buttons = [sac.ButtonsItem(label='Back', color='red', icon="caret-left")]
 
     if len(selected_categories) > 5:
         st.error("Select no more than 5 categories")
     elif len(selected_categories) > 2:
+        category_selection_buttons.append(sac.ButtonsItem(label='Next', color='green', icon="caret-right", ))
 
-        if "Next" == sac.buttons([
-            sac.ButtonsItem(label='Next', color='green', icon="caret-right", )
-        ], label="", size=categories_size, radius=28, index=None):
-
-            st.session_state['categories_selected'] = True
-            st.session_state['selected_categories'] = selected_categories
-            st.rerun()
+    selected_category_selection_button = sac.buttons(category_selection_buttons, label="", size=accounts_size, radius=28, index=None)
+    if "Back" == selected_category_selection_button:
+        st.switch_page('pages/tutorial.py')
+    elif "Next" == selected_category_selection_button:
+        st.session_state['categories_selected'] = True
+        st.session_state['selected_categories'] = selected_categories
+        st.rerun()
 
 
 
@@ -109,12 +111,26 @@ if st.session_state['categories_selected']:
             multiple=True
         )
 
-        if len(selected_accounts) < 3 or len(selected_accounts) > 5:
-            st.caption("Select 3 to 5 accounts.")
+        button_chip_items = [sac.ButtonsItem(label='Back', color='red', icon="caret-left")]
+        if len(selected_accounts) >= 3 and len(selected_accounts)<=5:
+            button_chip_items.append(sac.ButtonsItem(label='Next', color='green', icon="caret-right"))
 
-        if len(selected_accounts) >= 3 and len(selected_accounts)<=5 and "Next" == sac.buttons([
-                sac.ButtonsItem(label='Next', color='green', icon="caret-right")
-            ], label="",size=accounts_size, radius=28, index=None):
+        next_button = sac.buttons( button_chip_items, label="", size=accounts_size, radius=28, index=None)
+
+        instructions = "If you want to change your category selection and start over, click the 'Back' button above."
+        if len(selected_accounts) < 3:
+            st.caption("Select 3 to 5 accounts // " + instructions)
+        if len(selected_accounts) > 5:
+            st.caption("Select no more than 5 accounts // " + instructions)
+
+        if next_button == "Back":
+            st.session_state['categories_selected'] = False
+            st.session_state['selected_categories'] = []
+            st.session_state['category_index'] = 0
+            st.session_state['selected_accounts'] = []
+            st.rerun()
+
+        elif next_button == "Next":
             st.session_state['selected_accounts'].extend(selected_accounts)
             if st.session_state['category_index'] < len(st.session_state['selected_categories']) :
                 st.session_state['category_index'] += 1
