@@ -22,3 +22,9 @@ icon = ":material/forum:"
 path = "pages/submit_feedback.py"
 name = "Feedback"
 icon = ":material/send:"
+
+
+[[pages]]
+path = "pages/thank_you.py"
+name = "Thank You"
+icon = ":material/thumb_up:"

@@ -32,14 +32,31 @@ def load():
     accounts = accounts[['twitter_screen_name','twitter_user_id','twitter_name','use','twitter_desc','wikidata_label','wikidata_desc','wikidata_desc_np','category','sv']]
 
     my_keys = toml.load("/etc/secrets/keys.toml")
-    lm = dspy.LM('openai/gpt-4o-mini', api_key=my_keys["openai_api_key"])
+    lm = dspy.LM('openai/gpt-4o', api_key=my_keys["openai_api_key"]) #openai/gpt-4o-mini
 
     return sv, categories, accounts, my_keys, lm
+
+def session_init():
+    if 'init_complete' not in st.session_state:
+
+        sv, categories, accounts, my_keys, lm = load()
+
+        st.session_state['sv'] = sv
+        st.session_state['categories'] = categories
+        st.session_state['accounts'] = accounts
+        st.session_state['my_api_keys'] = my_keys
+        st.session_state['lm'] = lm
+        st.session_state['messages_timing'] = []
+        st.session_state['number_of_feedbacks_provided'] = 0
+        st.session_state['remaining_chat_types'] = ['Personalized Random', 'Personalized Like Me']
+        set_user_guid()
+        st.session_state['init_complete'] = True
+
 
 def set_user_guid():
     if 'unique_session_id' not in st.session_state:
         if "PROLIFIC_PID" in st.query_params:
-            st.session_state['unique_session_id'] = st.query_params["PROLIFIC_PID"]
+            st.session_state['unique_session_id'] = f"{st.query_params['PROLIFIC_PID']}__{st.query_params['STUDY_ID']}__{st.query_params['SESSION_ID']}"
         else:
             st.session_state['unique_session_id'] = str(uuid.uuid4())
     return

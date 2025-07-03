@@ -23,23 +23,10 @@ def accounts_popup():
 if "confirm1" not in st.session_state:
     categories_popup()
 
-if 'init_complete' not in st.session_state:
-    sv, categories, accounts, my_keys, lm = load()
-    st.session_state['sv'] = sv
-    st.session_state['categories'] = categories
-    st.session_state['accounts'] = accounts
-    st.session_state['my_api_keys'] = my_keys
-    st.session_state['lm'] = lm
-    st.session_state['messages_timing'] = []
-    st.session_state['number_of_feedbacks_provided'] = 0
-    set_user_guid()
-    st.session_state['init_complete'] = True
-else:
-    sv = st.session_state['sv']
-    categories = st.session_state['categories']
-    accounts = st.session_state['accounts']
-    my_keys = st.session_state['my_api_keys']
-    lm = st.session_state['lm']
+session_init()
+categories = st.session_state['categories']
+accounts = st.session_state['accounts']
+
 
 if 'next_clicked' not in st.session_state:
     st.session_state['next_clicked'] = False
@@ -122,8 +109,6 @@ if st.session_state['categories_selected']:
             multiple=True
         )
 
-        st.session_state['chat_option'] = 'Personalized Chat'
-
         if len(selected_accounts) < 3 or len(selected_accounts) > 5:
             st.caption("Select 3 to 5 accounts.")
 
@@ -137,10 +122,10 @@ if st.session_state['categories_selected']:
 
     else:
         un = accounts[accounts['twitter_name'].isin(st.session_state['selected_accounts'])]
-        mean_vector = np.mean(np.stack(un['sv'].values), axis=0)
+        st.session_state['user_mean_vector'] = np.mean(np.stack(un['sv'].values), axis=0)
         with st.spinner("Wait for it...", show_time=True):
             persona_details = pd.read_pickle('data/persona_details_v2.pkl')
             persona_details.drop_duplicates(subset='screen_name', inplace=True)
-            prepare_system_prompt(persona_details, mean_vector, st.session_state['chat_option'])
+            prepare_system_prompt(persona_details)
             st.session_state['clear_messages'] = True
             st.switch_page('pages/chat.py')

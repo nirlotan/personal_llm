@@ -1,39 +1,64 @@
 import streamlit as st
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
-import streamlit_antd_components as sac
+import random
+import time
+
+def get_random_chat_choice():
+    if len(st.session_state['remaining_chat_types']) == 0:
+        st.error("No more chat types available for this session.")
+        st.stop()
+    st.session_state['chat_type'] = random.choice(st.session_state['remaining_chat_types'])
+    return st.session_state['chat_type']
 
 
+def clear_session_state_for_next_chat():
+    st.session_state['remaining_chat_types'].remove(st.session_state['chat_type'])
+    st.session_state['system_message'] = None
+    st.session_state['chat_status'] = {"Friendly Chat": 0,
+                                       "Recommendation": 0,
+                                       "Factual Information Request" : 0
+                                        }
+    st.session_state['chat_type'] = None
+    st.session_state['clear_messages'] = True
+    st.session_state['last_system_message_time'] = time.time()
+    st.session_state['confirm3'] = None
+    st.session_state['chat_messages'] = None
+    st.session_state['messages_timing'] = []
+    st.session_state['user_for_the_chat'] = None
+    st.session_state['user_embeddings'] = None
+    st.session_state['selected_user_similarity'] = None
 
-def prepare_system_prompt(persona_details, mean_vector, chat_option):
+
+def prepare_system_prompt(persona_details):
     user_description = ""
 
-    if chat_option == "Personalized Chat":
-        sv_matrix = np.stack(persona_details['sv'].values)
-        persona_details['similarity'] = cosine_similarity(sv_matrix, mean_vector.reshape(1, -1)).flatten()
-        most_similar_idx = np.argmax(persona_details['similarity'].values)
-        user_for_the_chat = persona_details.iloc[most_similar_idx]
-        user_description += user_for_the_chat['description']
-        #user_description += f"Your alias is: {user_for_the_chat['screen_name']}.\n"
-        #if user_for_the_chat['location']:
-        #    user_description += f"You are from {user_for_the_chat['location']}. "
-        #user_description += f"You describe youself as: {user_for_the_chat['description']}.\n"
-        #user_description += f"Additional details: {user_for_the_chat['persona_description']}.\n"
+    st.session_state['chat_type'] = get_random_chat_choice()
 
-        st.session_state['user_for_the_chat'] = user_for_the_chat['screen_name']
-        st.session_state['selected_user_similarity'] = user_for_the_chat['similarity']
-        st.session_state['user_embeddings'] = np.array(user_for_the_chat['sv'])
-        st.session_state['is_personalized_chat'] = True
+    sv_matrix = np.stack(persona_details['sv'].values)
+    persona_details['similarity'] = cosine_similarity(sv_matrix, st.session_state['user_mean_vector'].reshape(1, -1)).flatten()
 
-        # Prepare the prompt
-        with open("system_message/base_message.txt", "r", encoding="utf-8") as f:
-            system_message = f.read()
+    if st.session_state['chat_type'] == "Personalized Like Me":
+        selected_user_idx = np.argmax(persona_details['similarity'].values)
+    elif st.session_state['chat_type'] == "Personalized Random":
+        selected_user_idx = random.randint(0, persona_details.shape[0] - 1)
 
-        final_prompt = system_message.replace("{character_description}", user_description)
+    user_for_the_chat = persona_details.iloc[selected_user_idx]
+    user_description += user_for_the_chat['description']
 
-    else:
-        st.session_state['user_embeddings'] = np.zeros(100)
-        final_prompt = ""
+    st.session_state['user_for_the_chat'] = user_for_the_chat['screen_name']
+    st.session_state['selected_user_similarity'] = user_for_the_chat['similarity']
+    st.session_state['user_embeddings'] = np.array(user_for_the_chat['sv'])
+
+    # Prepare the prompt
+    with open("system_message/base_message.txt", "r", encoding="utf-8") as f:
+        system_message = f.read()
+
+    final_prompt = system_message.replace("{character_description}", user_description)
+
+    # else:
+    #     st.session_state['user_embeddings'] = np.zeros(100)
+    #     final_prompt = ""
 
     st.session_state['system_message'] = final_prompt
 
