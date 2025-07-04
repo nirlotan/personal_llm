@@ -14,7 +14,7 @@ import uuid
 
 categories_file_path = os.path.join("data","popular_accounts_manually_validated_with_sv.xlsx")
 
-@st.cache_resource
+@st.cache_resource(show_spinner="Initial loading. Please wait...")
 def load():
     sv = SocialVec()
     categories = pd.ExcelFile(categories_file_path).sheet_names

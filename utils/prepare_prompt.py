@@ -51,7 +51,7 @@ def prepare_system_prompt(persona_details):
     st.session_state['user_embeddings'] = np.array(user_for_the_chat['sv'])
 
     # Prepare the prompt
-    with open("system_message/base_message3.txt", "r", encoding="utf-8") as f:
+    with open("system_message/base_message.txt", "r", encoding="utf-8") as f:
         system_message = f.read()
 
     final_prompt = system_message.replace("{character_description}", user_description)
