@@ -54,7 +54,7 @@ class ChatSessionClass:
         self.__init__(system_message)
 
     def get_messages_len(self):
-        return self.msgs_len - 1
+        return len(self.msgs.messages)/2 - 1
 
     def get_messages(self):
         return self.msgs.messages
@@ -110,7 +110,7 @@ class ChatSessionClass:
         chain_with_history = self.inject_first_message(chain_with_history)
         components.html(scroll_to_bottom, height=0)
 
-        self.msgs_len = len(self.msgs.messages) - 2
+        self.msgs_len = len(self.msgs.messages) - 1
 
         # --- Render previous messages ---
         for msg in self.msgs.messages[1:]:

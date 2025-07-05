@@ -11,6 +11,7 @@ from langchain.chains import LLMChain
 from streamlit_javascript import st_javascript
 from user_agents import parse
 import uuid
+from datetime import datetime
 
 categories_file_path = os.path.join("data","popular_accounts_manually_validated_with_sv.xlsx")
 
@@ -46,6 +47,7 @@ def session_init():
         st.session_state['accounts'] = accounts
         st.session_state['my_api_keys'] = my_keys
         st.session_state['lm'] = lm
+        st.session_state['experiment_start_time'] = str(datetime.now())
         st.session_state['messages_timing'] = []
         st.session_state['number_of_feedbacks_provided'] = 0
         st.session_state['remaining_chat_types'] = ['Personalized Random', 'Personalized Like Me']
@@ -56,6 +58,7 @@ def session_init():
 def set_user_guid():
     if 'unique_session_id' not in st.session_state:
         if "PROLIFIC_PID" in st.query_params:
+            st.session_state['user_from_prolific'] = True
             st.session_state['unique_session_id'] = f"{st.query_params['PROLIFIC_PID']}__{st.query_params['STUDY_ID']}__{st.query_params['SESSION_ID']}"
         else:
             st.session_state['unique_session_id'] = str(uuid.uuid4())

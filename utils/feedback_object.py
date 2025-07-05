@@ -42,6 +42,7 @@ class FeedbackObject():
                            key="my_text")
 
         self.survey_data = {
+            "experiment_start_time": st.session_state['experiment_start_time'],
             "date_time": str(datetime.now()),
             "unique_session_id": st.session_state['unique_session_id'],
             "user_selected_categories": st.session_state['selected_categories'],
@@ -58,4 +59,4 @@ class FeedbackObject():
 
         if 0 in responses:
             st.caption("You must provide your feedback on all categories in order to proceed.")
-        return self.survey_data
+        return responses

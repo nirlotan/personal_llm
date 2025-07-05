@@ -30,8 +30,7 @@ if "confirm4" not in st.session_state:
 fo = FeedbackObject()
 
 response = fo.feedback_form()
-
-if len(response) > 0:
+if response.count(0) == 0:
     next_button = sac.buttons([
         sac.ButtonsItem(label='Submit Survey', color='#25C3B0', icon="send")
     ], label="", index=None, color='violet', variant='filled')

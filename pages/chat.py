@@ -48,7 +48,6 @@ if 'chat_status' not in st.session_state:
 if "first_chat" not in st.session_state:
     st.session_state['first_chat'] = ChatSessionClass(st.session_state['system_message'])
 st.session_state['first_chat'].chat_session()
-st.session_state['first_chat'].get_messages_len()
 
 # Dynamic button options
 buttons_list = []
@@ -57,33 +56,33 @@ with bottom():
     app_config = toml.load("config.toml")
     chat_status_indexes = [i for i, (k, v) in enumerate(st.session_state['chat_status'].items()) if v == 1]
 
-    msgs_len = st.session_state['first_chat'].get_messages_len()
-
-    if st.session_state.is_session_pc:
-        sac.checkbox(
-            items=[
-                'Friendly Chat',
-                'Recommendation',
-                'Factual Information Request',
-            ],
-            label=f'You need to write {app_config["minimal_number_of_messages"] - msgs_len - 1} more messages to move to the next phase.<br>Try to complete the following tasks:',
-            index=chat_status_indexes, align='left', size='lg', disabled=True
-        )
-
+    #msgs_len = st.session_state['first_chat'].get_messages_len()
+    msgs_len = len(st.session_state['first_chat'].msgs.messages)/2 - 1
+    if (msgs_len < 5):
+        if st.session_state.is_session_pc:
+            sac.checkbox(
+                items=[
+                    'Friendly Chat',
+                    'Recommendation',
+                    'Factual Information Request',
+                ],
+                label=f'You need to write {int(app_config["minimal_number_of_messages"] - msgs_len)} more messages to move to the next phase.<br>Try to complete the following tasks:',
+                index=chat_status_indexes, align='left', size='lg', disabled=True
+            )
 
     enable_feedback = msgs_len >= app_config['minimal_number_of_messages'] and all(
         v == 1 for v in st.session_state['chat_status'].values())
 
     if enable_feedback:
         buttons_list.append(
-            sac.ButtonsItem(label="I'm done, let's go to the feedback section", color='#25C3B0', icon="caret-right")
+            sac.ButtonsItem(label="Whenever you are ready, you can click here to continue", color='#25C3B0', icon="caret-right")
         )
 
-        next_button = sac.buttons(buttons_list, label="", index=None, color='violet', variant='filled')
+        next_button = sac.buttons(buttons_list, label="", index=None, color='violet')
 
         if next_button == "System Prompt":
             show_system_message()
-        elif next_button == "I'm done, let's go to the feedback section":
+        elif next_button == "Whenever you are ready, you can click here to continue":
             st.session_state['clear_messages'] = True
             st.session_state['chat_messages'] = st.session_state['first_chat'].get_messages()
             st.switch_page('pages/submit_feedback.py')
