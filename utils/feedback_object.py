@@ -18,7 +18,7 @@ class FeedbackObject():
             })
 
         # Reference to the Firebase Realtime Database
-        self.ref = db.reference("/survey_results_1", app=firebase_admin.get_app(),
+        self.ref = db.reference("/survey_results_10", app=firebase_admin.get_app(),
                            url="https://socialai-00007-default-rtdb.firebaseio.com/")
         self.survey_data = {}
 
