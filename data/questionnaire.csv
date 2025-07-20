@@ -1,8 +1,8 @@
 ﻿short_label,label,description,Justification,Aim
 Perception,"<strong>Perception</strong> - To what extent does the chatbot feel like a realistic, human-like character?","(1 = Clearly a machine, 5 = Natural and human-like)","Moussawi et al., PPS",
-Relatability,<strong>Relatability</strong> - Compared to a typical chatbot - did you feel a stronger personal connection or sense of relatability with this chatbot?,"(1 = No connection at all, 5 = Strong connection)",,
+Relatability,<strong>Relatability</strong> - Did you feel some personal connection or sense of relatability with this chatbot?,"(1 = No connection at all, 5 = Strong connection)",,
 Relevance (Conversation),<strong>Relevance (Conversation)</strong> - To what extent did you feel that the chatbot conversation topics were relevant for you?,"(1 = Not at all, 5 = Completely)",Moussawi et al. (perceived intelligence),Usefulness in the context of informative query
 Relevance (Recommendation),<strong>Relevance (Recommendation)</strong> - Did you find the chatbot recommendations relevant or interesting for you?,"(1 = Not at all relevant, 5 = Very relevant)",,Check recommendation usefulness
 Attention,<strong>Attention</strong> - This is an attention check: please select “3 stars” from the scale below.,"(1 = Not reading at all, 3 = You have my attention)",,
-Engagement,<strong>Engagement</strong> - Did you find chatting with this chatbot more enjoyable or engaging than with a regular chatbot?,"(1 = Not at all, 5 = Definitely made it more enjoyable)","CloChat, PPS, CloChat, PPS",check this specific persona versus other persona or no persona at all
-Usefulness,<strong>Usefulness</strong> - How much more useful did you find this chatbot compared to typical chatbots?,"(1 = Not at all, 5 = Greatly improved it)",,
+Engagement,<strong>Engagement</strong> - Did you find chatting with this chatbot enjoyable or engaging?,"(1 = Not at all, 5 = Definitely enjoyable/engaging)","CloChat, PPS, CloChat, PPS",check this specific persona versus other persona or no persona at all
+Usefulness,<strong>Usefulness</strong> - How useful did you find this chatbot (for example with factual information)?,"(1 = Not at all, 5 = Really useful)",,

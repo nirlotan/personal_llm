@@ -57,7 +57,7 @@ with bottom():
     chat_status_indexes = [i for i, (k, v) in enumerate(st.session_state['chat_status'].items()) if v == 1]
 
     #msgs_len = st.session_state['first_chat'].get_messages_len()
-    msgs_len = len(st.session_state['first_chat'].msgs.messages)/2 - 1
+    msgs_len = int(len(st.session_state['first_chat'].msgs.messages)/2) - 1
     if (msgs_len < 5):
         if st.session_state.is_session_pc:
             sac.checkbox(

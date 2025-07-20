@@ -13,13 +13,15 @@ class FeedbackObject():
             firebase_json = st.session_state['my_api_keys']['freebase_certificate']
             cred = credentials.Certificate(json.loads(firebase_json))
             # Initialize the Firebase app
+
             firebase_admin.initialize_app(cred, {
-                'databaseURL': 'https://socialai-00007-default-rtdb.firebaseio.com/'  # Use your own database URL here
+                'databaseURL': st.session_state['my_api_keys']['firebase_db_url']  # Use your own database URL here
             })
 
         # Reference to the Firebase Realtime Database
-        self.ref = db.reference("/survey_results_10", app=firebase_admin.get_app(),
-                           url="https://socialai-00007-default-rtdb.firebaseio.com/")
+        self.ref = db.reference(st.session_state['my_api_keys']['experiment_feedback_path'],
+                                app=firebase_admin.get_app(),
+                                url=st.session_state['my_api_keys']['firebase_db_url'])
         self.survey_data = {}
 
     def submit_feedback(self):
