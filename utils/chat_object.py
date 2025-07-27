@@ -75,8 +75,12 @@ class ChatSessionClass:
         if user_intent['intent'].value in ["Friendly Chat", "Recommendation", "Factual Information Request"]:
             st.session_state['chat_status'][user_intent['intent']] = 1
 
+        # if this is vanilla gpt, we don't change the user prompt
+        if st.session_state['chat_type'] == "vanilla":
+            return user_prompt
+
         if user_intent['intent'] == "Recommendation":
-            if user_intent['topic']:
+            if user_intent['topic'] and st.session_state['chat_type'] not in ["vanilla_with_prompt"]:
                 rec_list = get_recommendation(self.sv, user_intent['topic'])
                 extended_user_prompt = f"{user_prompt}._. If relevant, try to recommend from: {rec_list}, but try to suggest unique and interesting recommendations. Be specific and concise. Don't ramble and keep your answer to be under 100 words."
             else:

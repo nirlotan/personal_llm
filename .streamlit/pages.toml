@@ -28,3 +28,9 @@ icon = ":material/send:"
 path = "pages/thank_you.py"
 name = "Thank You"
 icon = ":material/thumb_up:"
+
+[[pages]]
+path = "pages/debug_chat.py"
+name = ""
+icon = ""
+

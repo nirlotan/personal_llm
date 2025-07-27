@@ -53,12 +53,13 @@ st.session_state['first_chat'].chat_session()
 buttons_list = []
 
 with bottom():
+
     app_config = toml.load("config.toml")
     chat_status_indexes = [i for i, (k, v) in enumerate(st.session_state['chat_status'].items()) if v == 1]
 
     #msgs_len = st.session_state['first_chat'].get_messages_len()
     msgs_len = int(len(st.session_state['first_chat'].msgs.messages)/2) - 1
-    if (msgs_len < 5):
+    if (msgs_len < app_config['minimal_number_of_messages']):
         if st.session_state.is_session_pc:
             sac.checkbox(
                 items=[
@@ -70,19 +71,34 @@ with bottom():
                 index=chat_status_indexes, align='left', size='lg', disabled=True
             )
 
-    enable_feedback = msgs_len >= app_config['minimal_number_of_messages'] and all(
+    enable_feedback = msgs_len >= app_config['minimal_number_of_messages'] or all(
         v == 1 for v in st.session_state['chat_status'].values())
 
     if enable_feedback:
-        buttons_list.append(
-            sac.ButtonsItem(label="Whenever you are ready, you can click here to continue", color='#25C3B0', icon="caret-right")
-        )
 
-        next_button = sac.buttons(buttons_list, label="", index=None, color='violet')
+        # Inject custom CSS to style the button
+        st.markdown("""
+            <style>
+            div.stButton > button {
+                position: fixed;
+                bottom: 5%;
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: purple;
+                color: white;
+                padding: 12px 24px;
+                font-size: 18px;
+                border: none;
+                border-radius: 10px;
+                cursor: pointer;
+                box-shadow: 2px 2px 10px rgba(0,0,0,0.25);
+                z-index: 9999;
+            }
+            </style>
+        """, unsafe_allow_html=True)
 
-        if next_button == "System Prompt":
-            show_system_message()
-        elif next_button == "Whenever you are ready, you can click here to continue":
+        # Use regular Streamlit button
+        if st.button("✨ You can keep chatting. Whenever you are done, click here in order to continue"):
             st.session_state['clear_messages'] = True
             st.session_state['chat_messages'] = st.session_state['first_chat'].get_messages()
             st.switch_page('pages/submit_feedback.py')
