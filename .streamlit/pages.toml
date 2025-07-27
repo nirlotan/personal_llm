@@ -31,5 +31,5 @@ icon = ":material/thumb_up:"
 
 [[pages]]
 path = "pages/debug_chat.py"
-name = ""
+icon = ":material/accessibility:"
 
