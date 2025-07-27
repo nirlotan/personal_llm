@@ -1,7 +1,7 @@
 import streamlit as st
 from st_pages import add_page_title, get_nav_from_toml
 
-st.set_page_config(layout="wide")
+#st.set_page_config(layout="wide")
 with open( "styles.css" ) as css:
     st.markdown( f'<style>{css.read()}</style>' , unsafe_allow_html= True)
 # Importing stylesheet

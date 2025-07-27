@@ -71,11 +71,9 @@ with bottom():
                 index=chat_status_indexes, align='left', size='lg', disabled=True
             )
 
-    enable_feedback = msgs_len >= app_config['minimal_number_of_messages'] or all(
-        v == 1 for v in st.session_state['chat_status'].values())
+    enable_feedback = msgs_len >= app_config['minimal_number_of_messages']
 
     if enable_feedback:
-
         # Inject custom CSS to style the button
         st.markdown("""
             <style>
