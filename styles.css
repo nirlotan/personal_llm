@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Gidole:wght@100&display=swap');
 
 html, body [class*="css"] {
-    font-family: 'Garamond', serif;
+    font-family: 'tuffy', serif;
     font-size: 18px;
     font-weight: 500;
     color: #091747;
@@ -9,7 +9,7 @@ html, body [class*="css"] {
 
 /* Extend to style sac-markdown elements */
 .sac-markdown {
-    font-family: 'Garamond', serif !important;
+    font-family: 'tuffy', serif !important;
     font-size: 18px !important;
     font-weight: 500 !important;
     color: #091747 !important;

@@ -53,7 +53,6 @@ st.session_state['first_chat'].chat_session()
 buttons_list = []
 
 with bottom():
-
     app_config = toml.load("config.toml")
     chat_status_indexes = [i for i, (k, v) in enumerate(st.session_state['chat_status'].items()) if v == 1]
 

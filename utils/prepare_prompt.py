@@ -38,21 +38,31 @@ def prepare_system_prompt(persona_details):
     sv_matrix = np.stack(persona_details['sv'].values)
     persona_details['similarity'] = cosine_similarity(sv_matrix, st.session_state['user_mean_vector'].reshape(1, -1)).flatten()
 
-    if st.session_state['chat_type'] == "Personalized Like Me":
-        selected_user_idx = np.argmax(persona_details['similarity'].values)
-    elif st.session_state['chat_type'] == "Personalized Random":
-        selected_user_idx = random.randint(0, persona_details.shape[0] - 1)
+    # prompt_base
+    if st.session_state['chat_type'] in ["Personalized Like Me", "Personalized Random", "vanilla_with_prompt"]:
+        with open("system_message/base_message.txt", "r", encoding="utf-8") as f:
+            system_message = f.read()
+    else:
+        system_message = ""
 
-    user_for_the_chat = persona_details.iloc[selected_user_idx]
-    user_description += user_for_the_chat['description']
+    if st.session_state['chat_type'] in ["Personalized Like Me", "Personalized Random"]:
+        if st.session_state['chat_type'] == "Personalized Like Me":
+            selected_user_idx = np.argmax(persona_details['similarity'].values)
+        elif st.session_state['chat_type'] == "Personalized Random":
+            selected_user_idx = random.randint(0, persona_details.shape[0] - 1)
 
-    st.session_state['user_for_the_chat'] = user_for_the_chat['screen_name']
-    st.session_state['selected_user_similarity'] = user_for_the_chat['similarity']
-    st.session_state['user_embeddings'] = np.array(user_for_the_chat['sv'])
+        user_for_the_chat = persona_details.iloc[selected_user_idx]
+        user_description += user_for_the_chat['description']
+
+        st.session_state['user_for_the_chat'] = user_for_the_chat['screen_name']
+        st.session_state['selected_user_similarity'] = user_for_the_chat['similarity']
+        st.session_state['user_embeddings'] = np.array(user_for_the_chat['sv'])
+    else:
+        st.session_state['user_for_the_chat'] = st.session_state['chat_type']
+        st.session_state['selected_user_similarity'] = 0
 
     # Prepare the prompt
-    with open("system_message/base_message.txt", "r", encoding="utf-8") as f:
-        system_message = f.read()
+
 
     final_prompt = system_message.replace("{character_description}", user_description)
 

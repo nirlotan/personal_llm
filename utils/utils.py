@@ -39,7 +39,6 @@ def load():
 
 def session_init():
     if 'init_complete' not in st.session_state:
-
         sv, categories, accounts, my_keys, lm = load()
 
         st.session_state['sv'] = sv
@@ -50,9 +49,10 @@ def session_init():
         st.session_state['experiment_start_time'] = str(datetime.now())
         st.session_state['messages_timing'] = []
         st.session_state['number_of_feedbacks_provided'] = 0
-        st.session_state['remaining_chat_types'] = ['Personalized Random', 'Personalized Like Me']
-        set_user_guid()
+        st.session_state['remaining_chat_types'] = my_keys['types_of_chat_list']#['Personalized Random', 'Personalized Like Me']
         st.session_state['init_complete'] = True
+        set_user_guid()
+
 
 
 def set_user_guid():

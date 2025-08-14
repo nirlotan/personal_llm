@@ -12,9 +12,6 @@ if 'init_complete' not in st.session_state:
 # if "button_clicked" not in st.session_state:
 #     st.session_state.button_clicked = False
 #
-# Function to handle button click
-# def on_button_click():
-#     st.session_state.button_clicked = True  # Set the button as clicked
 
 @st.dialog("Feedback")
 def feedback_popup():
@@ -38,7 +35,6 @@ if response.count(0) == 0:
     if next_button == 'Submit Survey':
         # Save survey results to Firebase (generating a new key under 'survey_results')
         fo.submit_feedback()
-        #on_button_click()
 
         clear_session_state_for_next_chat()
         if len(st.session_state['remaining_chat_types']) > 0:
