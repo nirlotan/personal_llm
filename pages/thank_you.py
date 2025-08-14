@@ -13,3 +13,6 @@ def redirect_button(url, text):
 if 'user_from_prolific' in st.session_state:
     redirect_button(f"https://app.prolific.com/submissions/complete?cc={st.session_state['my_api_keys']['prolific_approval']}",
                     "Click here to be redirected to Prolific to get your credit")
+else:
+    st.markdown("<div style='text-align: center;'><h4>There was an issue crediting you on Prolific Please send us this code to get credited:</h4></div>", unsafe_allow_html=True)
+    st.code(st.session_state['unique_session_id'])
