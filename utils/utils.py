@@ -49,7 +49,7 @@ def session_init():
         st.session_state['experiment_start_time'] = str(datetime.now())
         st.session_state['messages_timing'] = []
         st.session_state['number_of_feedbacks_provided'] = 0
-        st.session_state['remaining_chat_types'] = my_keys['types_of_chat_list']
+        st.session_state['remaining_chat_types'] = my_keys['types_of_chat_list'].copy()
         st.session_state['recommendation_topics'] = []
         st.session_state['init_complete'] = True
 
