@@ -47,7 +47,7 @@ class FeedbackObject():
                 sac.rate(label=question['label'], description=question['description'], value=0.0, align='start',
                          key=f'q{i}'))
 
-        txt = st.text_area("Additional Feedback (Optional)", key="my_text")
+        txt = st.text_area("Additional Feedback", key="my_text")
 
         # Build survey data with safe defaults
         self.survey_data = {
@@ -62,8 +62,10 @@ class FeedbackObject():
             "system_message": self._safe_get_session_value('system_message'),
             "chat": self._format_chat_messages(self._safe_get_session_value('chat_messages')),
             "messages_timing": self._safe_get_session_value('messages_timing', {}),
+            "recommendation_topics": self._safe_get_session_value('recommendation_topics'),
             "user_feedback": {questions['short_label'].iloc[index]: value for index, value in enumerate(responses)},
-            "free_text_feedback": txt
+            "free_text_feedback": txt,
+
         }
 
         if 0 in responses:

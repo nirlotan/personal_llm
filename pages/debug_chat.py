@@ -31,12 +31,9 @@ st.session_state['clear_messages'] = True
 system_message = ""
 
 
-st.session_state['chat_type'] = "vanilla"
-if "chat_type" in st.query_params:
-    if st.query_params['chat_type'] == "vanilla_with_prompt":
-        st.session_state['chat_type'] = st.query_params['chat_type']
-        with open("system_message/base_message.txt", "r", encoding="utf-8") as f:
-            system_message = f.readlines()[:-1]
-st.session_state['system_message'] = system_message
-st.session_state['init_complete'] = True
-st.switch_page('pages/chat.py')
+st.session_state['chat_type'] = st.selectbox("select chat type:",options=["", "vanilla","Personalized Like Me", "Personalized Random"])
+#if "chat_type" in st.query_params:
+if st.session_state["chat_type"] != "":
+    st.session_state['system_message'] = system_message
+    st.session_state['init_complete'] = True
+    st.switch_page('pages/chat.py')

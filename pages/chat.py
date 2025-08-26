@@ -16,8 +16,8 @@ if not st.session_state['messages_timing']:
 def chat_popup():
     st.write(f"Next, you’ll chat with a large language model, exchanging a few messages.")
     st.write(f"**This is the first chatbot out of 2 chatbos.**")
-    st.write(f"Try to complete these tasks:  \n 1. Have a **casual conversation,**  \n 2. Ask for **recommendations,**  \n 3. Request **factual information.**")
-    st.write(f"You can pass to the next phase after trying all these types of interactions, of after a minimal number of messages.")
+    st.write(f"You **need to** complete these tasks:  \n 1. Have a **casual conversation,**  \n 2. Ask for **recommendation,**  \n 3. Request **factual information.**")
+    st.write(f"You can pass to the next phase after trying all these types of interactions, and after completing a minimal number of messages.")
     st.badge("**Suggestion:** Try to exchange opinions with the chatbot!", icon="💡", color="green")
     st.badge("**Note:** Read the chatbot messages!", icon="👉", color="orange")
     if st.button("Confirm"):
@@ -56,8 +56,11 @@ with bottom():
     app_config = toml.load("config.toml")
     chat_status_indexes = [i for i, (k, v) in enumerate(st.session_state['chat_status'].items()) if v == 1]
 
-    #msgs_len = st.session_state['first_chat'].get_messages_len()
+
     msgs_len = int(len(st.session_state['first_chat'].msgs.messages)/2) - 1
+    if st.session_state['chat_type'] == "vanilla":
+        msgs_len += 1
+
     if (msgs_len < app_config['minimal_number_of_messages']):
         if st.session_state.is_session_pc:
             sac.checkbox(
@@ -70,9 +73,15 @@ with bottom():
                 index=chat_status_indexes, align='left', size='lg', disabled=True
             )
 
-    enable_feedback = msgs_len >= app_config['minimal_number_of_messages']
+    all_tasks_completed = all(v == 1 for v in st.session_state['chat_status'].values())
+    enable_feedback = msgs_len >= app_config['minimal_number_of_messages'] and all_tasks_completed
+
+    if msgs_len >= app_config['minimal_number_of_messages'] and not all_tasks_completed:
+        st.markdown(f"""> :warning: **Pending Tasks**: In order to proceed to the next phase you must complete all tasks.
+        You still haven't completed the tasks: **{", ".join([k for k, v in st.session_state['chat_status'].items() if v == 0])}**""")
 
     if enable_feedback:
+
         # Inject custom CSS to style the button
         st.markdown("""
             <style>
