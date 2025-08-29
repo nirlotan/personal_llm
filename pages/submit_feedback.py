@@ -36,8 +36,9 @@ if response.count(0) == 0:
         # Save survey results to Firebase (generating a new key under 'survey_results')
         fo.submit_feedback()
 
-        clear_session_state_for_next_chat()
-        if len(st.session_state['remaining_chat_types']) > 0:
+
+        if len(st.session_state['remaining_chat_types']) > 1:
+            clear_session_state_for_next_chat()
             persona_details = pd.read_pickle('data/persona_details_v2.pkl')
             persona_details.drop_duplicates(subset='screen_name', inplace=True)
             new_system_message = prepare_system_prompt(persona_details)
