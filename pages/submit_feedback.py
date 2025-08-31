@@ -36,6 +36,8 @@ if response.count(0) == 0:
         # Save survey results to Firebase (generating a new key under 'survey_results')
         fo.submit_feedback()
 
+        if response[4]!=3:
+            st.switch_page('pages/missed_attention.py')
 
         if len(st.session_state['remaining_chat_types']) > 1:
             clear_session_state_for_next_chat()
