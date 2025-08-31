@@ -30,6 +30,11 @@ name = "Thank You"
 icon = ":material/thumb_up:"
 
 [[pages]]
+path = "pages/missed_attention.py"
+name = "Missed Attention Question"
+icon = ":material/thumb_down:"
+
+[[pages]]
 path = "pages/debug_chat.py"
 icon = ":material/accessibility:"
 
