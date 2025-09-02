@@ -53,6 +53,7 @@ def session_init():
         st.session_state['recommendation_topics'] = []
         st.session_state['init_complete'] = True
 
+        check_friends_url()
         set_user_guid()
 
 def set_user_guid():
@@ -63,6 +64,10 @@ def set_user_guid():
         else:
             st.session_state['unique_session_id'] = str(uuid.uuid4())
     return
+
+def check_friends_url():
+    if "friends" in st.query_params:
+        st.session_state['my_api_keys']['experiment_feedback_path'] = '/survey_results_friends'
 
 def check_pc_mobile():
     try:
