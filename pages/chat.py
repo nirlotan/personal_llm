@@ -18,8 +18,8 @@ def chat_popup():
     st.write(f"**This is the first chatbot out of 2 chatbos.**")
     st.write(f"You **need to** complete these tasks:  \n 1. Have a **casual conversation,**  \n 2. Ask for **recommendation,**  \n 3. Request **factual information.**")
     st.write(f"You can pass to the next phase after trying all these types of interactions, and after completing a minimal number of messages.")
-    st.badge("**Suggestion:** Try to exchange opinions with the chatbot!", icon="💡", color="green")
-    st.badge("**Note:** Read the chatbot messages!", icon="👉", color="orange")
+    st.badge("**Note:** The chatbot is **not** up-to-date with current events.", icon="📌", color="orange")
+    st.badge("Read the messages. You'll be asked about the experience.", icon="💡", color="green")
     if st.button("Confirm"):
         st.session_state.confirm3 = True
         st.rerun()
