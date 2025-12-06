@@ -62,7 +62,7 @@ def prepare_system_prompt(persona_details):
         import pandas as pd
         persona_description = pd.read_excel(f"data/{st.session_state['chat_type'].split('_')[0]}_selected_personas.xlsx")
         selected_user_idx = random.randint(0, persona_description.shape[0] - 1)
-        user_for_the_chat = persona_description.iloc[selected_user_idx]
+        user_for_the_chat = persona_description.iloc[selected_user_idx].astype(str)
         st.session_state['user_for_the_chat'] = user_for_the_chat['persona_id']
         user_description += user_for_the_chat['persona']
     else:
