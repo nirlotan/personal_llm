@@ -89,7 +89,7 @@ class ChatSessionClass:
             return user_prompt
 
         if user_intent['intent'] == "Recommendation":
-            if user_intent['topic'] and st.session_state['chat_type'] not in ["vanilla_with_prompt"]:
+            if user_intent['topic'] and st.session_state['chat_type'] not in ["vanilla_with_prompt", "PERSONA_ref","SPC_ref"]:
                 rec_list = get_recommendation(self.sv, user_intent['topic'])
                 extended_user_prompt = f"""{user_prompt} ._. 
                                 [Assistant Guidance — do not treat as user input]: 

@@ -31,7 +31,7 @@ st.session_state['clear_messages'] = True
 system_message = ""
 
 
-st.session_state['chat_type'] = st.selectbox("select chat type:",options=["", "vanilla","Personalized Like Me", "Personalized Random"])
+st.session_state['chat_type'] = st.selectbox("select chat type:",options=["", "vanilla","Personalized Like Me", "Personalized Random", "Personalized Random", "PERSONA_ref","SPC_ref"])
 #if "chat_type" in st.query_params:
 if st.session_state["chat_type"] != "":
     st.session_state['system_message'] = system_message

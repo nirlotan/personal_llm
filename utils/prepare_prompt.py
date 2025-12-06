@@ -39,7 +39,7 @@ def prepare_system_prompt(persona_details):
     persona_details['similarity'] = cosine_similarity(sv_matrix, st.session_state['user_mean_vector'].reshape(1, -1)).flatten()
 
     # prompt_base
-    if st.session_state['chat_type'] in ["Personalized Like Me", "Personalized Random", "vanilla_with_prompt"]:
+    if st.session_state['chat_type'] in ["Personalized Like Me", "Personalized Random", "vanilla_with_prompt", "PERSONA_ref", "SPC_ref"]:
         with open("system_message/base_message.txt", "r", encoding="utf-8") as f:
             system_message = f.read()
     else:
@@ -57,18 +57,21 @@ def prepare_system_prompt(persona_details):
         st.session_state['user_for_the_chat'] = user_for_the_chat['screen_name']
         st.session_state['selected_user_similarity'] = user_for_the_chat['similarity']
         st.session_state['user_embeddings'] = np.array(user_for_the_chat['sv'])
+    elif st.session_state['chat_type'] in ["PERSONA_ref", "SPC_ref"]:
+        # Deal with reference personas.
+        import pandas as pd
+        persona_description = pd.read_excel(f"data/{st.session_state['chat_type'].split("_")[0]}_selected_personas.xlsx")
+        selected_user_idx = random.randint(0, persona_description.shape[0] - 1)
+        user_for_the_chat = persona_description.iloc[selected_user_idx]
+        st.session_state['user_for_the_chat'] = user_for_the_chat['persona_id']
+        user_description += user_for_the_chat['persona']
     else:
         st.session_state['user_for_the_chat'] = st.session_state['chat_type']
         st.session_state['selected_user_similarity'] = 0
 
     # Prepare the prompt
-
-
     final_prompt = system_message.replace("{character_description}", user_description)
 
-    # else:
-    #     st.session_state['user_embeddings'] = np.zeros(100)
-    #     final_prompt = ""
 
     st.session_state['system_message'] = final_prompt
 
