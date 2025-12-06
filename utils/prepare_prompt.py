@@ -60,7 +60,7 @@ def prepare_system_prompt(persona_details):
     elif st.session_state['chat_type'] in ["PERSONA_ref", "SPC_ref"]:
         # Deal with reference personas.
         import pandas as pd
-        persona_description = pd.read_excel(f"data/{st.session_state['chat_type'].split("_")[0]}_selected_personas.xlsx")
+        persona_description = pd.read_excel(f"data/{st.session_state['chat_type'].split('_')[0]}_selected_personas.xlsx")
         selected_user_idx = random.randint(0, persona_description.shape[0] - 1)
         user_for_the_chat = persona_description.iloc[selected_user_idx]
         st.session_state['user_for_the_chat'] = user_for_the_chat['persona_id']
