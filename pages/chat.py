@@ -12,6 +12,11 @@ if 'init_complete' not in st.session_state:
 if not st.session_state['messages_timing']:
     st.session_state['messages_timing'] = []
 
+
+@st.dialog("System Message")
+def provide_debug_info():
+    st.write(st.session_state['system_message'])
+
 @st.dialog("Conversation with a Language Model")
 def chat_popup():
     st.write(f"Next, you’ll chat with a large language model, exchanging a few messages.")
@@ -33,7 +38,7 @@ def second_chat_popup():
 
 if "confirm3" not in st.session_state:
     chat_popup()
-elif "second_chat_confirm" not in st.session_state and len(st.session_state['remaining_chat_types'])==1:
+elif "second_chat_confirm" not in st.session_state and len(st.session_state['remaining_chat_types'])==1 and 'allow_debug' not in st.session_state:
     second_chat_popup()
 
 if 'chat_status' not in st.session_state:
@@ -75,6 +80,10 @@ with bottom():
 
     all_tasks_completed = all(v == 1 for v in st.session_state['chat_status'].values())
     enable_feedback = msgs_len >= app_config['minimal_number_of_messages'] and all_tasks_completed
+
+    if 'allow_debug' in st.session_state:
+        if st.button("System Message (debug only)"):
+            provide_debug_info()
 
     if msgs_len >= app_config['minimal_number_of_messages'] and not all_tasks_completed:
         st.markdown(f"""> :warning: **Pending Tasks**: In order to proceed to the next phase you must complete all tasks.

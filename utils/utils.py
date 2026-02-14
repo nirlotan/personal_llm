@@ -12,8 +12,26 @@ from streamlit_javascript import st_javascript
 from user_agents import parse
 import uuid
 from datetime import datetime
+import platform
 
 categories_file_path = os.path.join("data","popular_accounts_manually_validated_with_sv.xlsx")
+
+def get_my_keys():
+    # Determine the path based on the operating system
+    if platform.system() == "Darwin":  # "Darwin" is the system name for macOS
+        secrets_path = ".streamlit/secrets.toml"
+    else:
+        secrets_path = "/etc/secrets/keys.toml"
+
+    # Load the keys
+    if os.path.exists(secrets_path):
+        my_keys = toml.load(secrets_path)
+    else:
+        raise FileNotFoundError(f"Could not find secrets file at {secrets_path}")
+
+    return my_keys
+
+
 
 @st.cache_resource(show_spinner="Initial loading. Please wait...")
 def load():
@@ -32,7 +50,7 @@ def load():
 
     accounts = accounts[['twitter_screen_name','twitter_user_id','twitter_name','use','twitter_desc','wikidata_label','wikidata_desc','wikidata_desc_np','category','sv']]
 
-    my_keys = toml.load("/etc/secrets/keys.toml")
+    my_keys = get_my_keys()
     lm = dspy.LM('openai/gpt-4o', api_key=my_keys["openai_api_key"]) #openai/gpt-4o-mini
 
     return sv, categories, accounts, my_keys, lm
