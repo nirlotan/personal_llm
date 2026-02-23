@@ -140,9 +140,10 @@ if st.session_state['categories_selected']:
         un = accounts[accounts['twitter_name'].isin(st.session_state['selected_accounts'])]
         un = un[~un['sv'].isna()]
         st.session_state['user_mean_vector'] = np.mean(np.stack(un['sv'].values), axis=0)
-        with st.spinner("Wait for it...", show_time=True):
-            persona_details = pd.read_pickle('data/persona_details_v3.pkl')
-            persona_details.drop_duplicates(subset='screen_name', inplace=True)
-            prepare_system_prompt(persona_details)
-            st.session_state['clear_messages'] = True
-            st.switch_page('pages/chat.py')
+        persona_details = pd.read_pickle('data/persona_details_v3.pkl')
+        persona_details.drop_duplicates(subset='screen_name', inplace=True)
+        # In debug mode the prompt function shows an interactive user-selection
+        # screen (with st.stop()), so we must NOT wrap it in a spinner.
+        prepare_system_prompt(persona_details)
+        st.session_state['clear_messages'] = True
+        st.switch_page('pages/chat.py')
