@@ -57,6 +57,7 @@ def prepare_system_prompt(persona_details):
         st.session_state['user_for_the_chat'] = user_for_the_chat['screen_name']
         st.session_state['selected_user_similarity'] = user_for_the_chat['similarity']
         st.session_state['user_embeddings'] = np.array(user_for_the_chat['sv'])
+        st.session_state['selected_user_follow_list'] = user_for_the_chat['follows_list']
     elif st.session_state['chat_type'] in ["PERSONA_ref", "SPC_ref"]:
         # Deal with reference personas.
         import pandas as pd

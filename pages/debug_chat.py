@@ -47,7 +47,7 @@ def prepare_system_message_for_debug(chat_type):
         user_description = user_for_the_chat['persona']
     # For Personalized Random (without cold start data)
     elif chat_type == "Personalized Random":
-        persona_details = pd.read_pickle('data/persona_details_v2.pkl')
+        persona_details = pd.read_pickle('data/persona_details_v3.pkl')
         persona_details.drop_duplicates(subset='screen_name', inplace=True)
         selected_user_idx = random.randint(0, persona_details.shape[0] - 1)
         user_for_the_chat = persona_details.iloc[selected_user_idx]
@@ -55,6 +55,7 @@ def prepare_system_message_for_debug(chat_type):
         st.session_state['user_for_the_chat'] = user_for_the_chat['screen_name']
         st.session_state['selected_user_similarity'] = 0
         st.session_state['user_embeddings'] = np.array(user_for_the_chat['sv'])
+        st.session_state['selected_user_follow_list'] = user_for_the_chat['follows_list']
     
     # Prepare final prompt
     final_prompt = system_message.replace("{character_description}", user_description)
