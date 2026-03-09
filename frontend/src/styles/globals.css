@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+body {
+  background: linear-gradient(135deg, #ebe9ff 0%, #d8d4ff 50%, #c8c0fa 100%);
+  min-height: 100vh;
+  font-family: "Inter", sans-serif;
+}
+
+/* ── Glassmorphism card ─────────────────────────────────────────────────── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  border-radius: 9999px;
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+.glass-card-selected {
+  background: rgba(139, 92, 246, 0.15) !important;
+  border: 2px solid #8b5cf6 !important;
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.3) !important;
+}
+
+/* ── Progress bar gradient ──────────────────────────────────────────────── */
+.progress-fill {
+  background: linear-gradient(90deg, #7c3aed 0%, #a78bfa 100%);
+}
+
+/* ── Button gradient ────────────────────────────────────────────────────── */
+.btn-gradient {
+  background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.5);
+}
+
+.btn-gradient:hover {
+  transform: scale(1.05);
+}
+
+/* ── Chat bubbles ───────────────────────────────────────────────────────── */
+.chat-bubble-user {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.chat-bubble-ai {
+  background: rgba(139, 92, 246, 0.08);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+}
+
+/* ── Star rating ────────────────────────────────────────────────────────── */
+.star-rating button {
+  transition: transform 0.1s ease;
+}
+
+.star-rating button:hover {
+  transform: scale(1.2);
+}
+
+/* ── Glass panel (for chat, feedback, etc.) ─────────────────────────────── */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 1.5rem;
+}

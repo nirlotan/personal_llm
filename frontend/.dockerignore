@@ -1,0 +1,6 @@
+node_modules
+.next
+.env*.local
+*.md
+e2e/
+playwright.config.ts

@@ -1,0 +1,39 @@
+services:
+  # ── Backend (FastAPI) ──────────────────────────────────────────────────────
+  - type: web
+    name: personal-llm-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: standard          # needs RAM for SocialVec model (~1-2 GB)
+    healthCheckPath: /api/health
+    envVars:
+      - key: DEBUG
+        value: false
+      - key: OPENAI_API_KEY
+        sync: false         # set manually in Render dashboard
+      - key: FIREBASE_CERTIFICATE_JSON
+        sync: false         # set manually in Render dashboard (single-line JSON)
+      - key: FIREBASE_DB_URL
+        sync: false
+      - key: EXPERIMENT_FEEDBACK_PATH
+        sync: false
+      - key: PROLIFIC_APPROVAL
+        sync: false
+      - key: TYPES_OF_CHAT_LIST
+        sync: false         # e.g. ["SPC_ref","PERSONA_ref"]
+      - key: CORS_ORIGINS
+        sync: false         # set after frontend is deployed, e.g. ["https://personal-llm-frontend.onrender.com"]
+
+  # ── Frontend (Next.js) ────────────────────────────────────────────────────
+  - type: web
+    name: personal-llm-frontend
+    runtime: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    plan: starter
+    envVars:
+      # Set this to your backend's Render URL after the backend service is created,
+      # e.g. https://personal-llm-backend.onrender.com
+      - key: NEXT_PUBLIC_API_URL
+        sync: false

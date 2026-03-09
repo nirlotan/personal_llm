@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Onboarding Interest Selection</title>
+<!-- Tailwind CSS v3 with plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration for custom colors and fonts -->
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              bg: '#E0DDFE', // Soft lavender
+              dark: '#1E1B4B', // Deep purple text
+              primary: '#5B4EFA', // Vibrant purple for accents
+              glass: 'rgba(255, 255, 255, 0.4)',
+              glassBorder: 'rgba(255, 255, 255, 0.6)',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          boxShadow: {
+            'glow': '0 0 20px rgba(91, 78, 250, 0.3)',
+            'glow-strong': '0 0 25px rgba(50, 20, 150, 0.5)',
+          }
+        }
+      }
+    }
+  </script>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Custom Styles for Glassmorphism and specialized gradients -->
+<style data-purpose="custom-effects">
+    body {
+      background: linear-gradient(135deg, #EBE9FF 0%, #D8D4FF 50%, #C8C0FA 100%);
+      min-height: 100vh;
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+      border-radius: 9999px;
+    }
+
+    .glass-card:hover {
+      background: rgba(255, 255, 255, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .glass-card-selected {
+      background: rgba(139, 92, 246, 0.15);
+      border: 2px solid #8B5CF6;
+      box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+    }
+
+    /* Custom progress bar gradient */
+    .progress-fill {
+      background: linear-gradient(90deg, #7C3AED 0%, #A78BFA 100%);
+    }
+
+    /* Button gradient */
+    .btn-gradient {
+      background: linear-gradient(135deg, #4C1D95 0%, #7C3AED 100%);
+      box-shadow: 0 4px 14px rgba(124, 58, 237, 0.5);
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center p-4 font-sans text-slate-800 antialiased selection:bg-purple-200">
+<!-- BEGIN: Main Container -->
+<!-- This container centers the content and restricts width -->
+<main class="w-full max-w-5xl mx-auto flex flex-col items-center justify-center py-10" data-purpose="onboarding-wrapper">
+<!-- BEGIN: Header Section -->
+<header class="text-center mb-10 w-full max-w-3xl">
+<h1 class="text-[32px] font-bold text-[#1E1B4B] mb-2 tracking-tight font-sans">
+        Onboarding Interest Selection
+      </h1>
+<p class="text-[#4B5563] text-base mb-8">
+        Select your interests to personalize your experience. Choose 3 to 5 topics.
+      </p>
+<!-- Progress Bar Component -->
+<div class="w-full max-w-2xl mx-auto text-left" data-purpose="progress-tracker">
+<span class="text-sm font-semibold text-slate-700 block mb-2">Step 1 of 3</span>
+<div class="w-full bg-white/40 h-2 rounded-full overflow-hidden backdrop-blur-sm">
+<div class="progress-fill h-full rounded-full w-[30%] shadow-lg"></div>
+</div>
+</div>
+</header>
+<!-- END: Header Section -->
+<!-- BEGIN: Interest Grid Section -->
+<section aria-label="Interest Selection Grid" class="w-full max-w-5xl mb-12">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+<!-- Card 1: Technology (Selected) -->
+<button aria-pressed="true" class="glass-card glass-card-selected h-20 px-6 py-4 flex items-center justify-between w-full group text-left cursor-pointer">
+<div class="flex items-center">
+<span aria-label="Laptop" class="text-2xl mr-3" role="img">💻</span>
+<span class="text-lg font-medium text-[#1F2937]">Technology</span>
+</div>
+<svg class="h-6 w-6 text-[#7C3AED]" fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<!-- Card 2: Science (Selected) -->
+<button aria-pressed="true" class="glass-card glass-card-selected h-20 px-6 py-4 flex items-center justify-between w-full group text-left cursor-pointer">
+<div class="flex items-center">
+<span aria-label="Rocket" class="text-2xl mr-3" role="img">🚀</span>
+<span class="text-lg font-medium text-[#1F2937]">Science</span>
+</div>
+<svg class="h-6 w-6 text-[#7C3AED]" fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<!-- Card 3: Arts & Culture -->
+<button aria-pressed="false" class="glass-card h-20 px-6 py-4 flex items-center justify-start w-full group text-left cursor-pointer">
+<div class="flex items-center">
+<span aria-label="Palette" class="text-2xl mr-3" role="img">🎨</span>
+<span class="text-lg font-medium text-[#1F2937]">Arts &amp; Culture</span>
+</div>
+</button>
+<!-- Card 4: Travel -->
+<button aria-pressed="false" class="glass-card h-20 px-6 py-4 flex items-center justify-start w-full group text-left cursor-pointer">
+<div class="flex items-center">
+<span aria-label="Airplane" class="text-2xl mr-3" role="img">✈️</span>
+<span class="text-lg font-medium text-[#1F2937]">Travel</span>
+</div>
+</button>
+<!-- Card 5: Health & Wellness -->
+<button aria-pressed="false" class="glass-card h-20 px-6 py-4 flex items-center justify-start w-full group text-left cursor-pointer">
+<div class="flex items-center">
+<span aria-label="Muscle" class="text-2xl mr-3" role="img">💪</span>
+<span class="text-lg font-medium text-[#1F2937]">Health &amp; Wellness</span>
+</div>
+</button>
+<!-- Card 6: Gaming -->
+<button aria-pressed="false" class="glass-card h-20 px-6 py-4 flex items-center justify-start w-full group text-left cursor-pointer">
+<div class="flex items-center">
+<span aria-label="Controller" class="text-2xl mr-3" role="img">🎮</span>
+<span class="text-lg font-medium text-[#1F2937]">Gaming</span>
+</div>
+</button>
+<!-- Card 7: Music -->
+<button aria-pressed="false" class="glass-card h-20 px-6 py-4 flex items-center justify-start w-full group text-left cursor-pointer">
+<div class="flex items-center">
+<span aria-label="Music Note" class="text-2xl mr-3" role="img">🎵</span>
+<span class="text-lg font-medium text-[#1F2937]">Music</span>
+</div>
+</button>
+<!-- Card 8: Finance -->
+<button aria-pressed="false" class="glass-card h-20 px-6 py-4 flex items-center justify-start w-full group text-left cursor-pointer">
+<div class="flex items-center">
+<span aria-label="Money Bag" class="text-2xl mr-3" role="img">💰</span>
+<span class="text-lg font-medium text-[#1F2937]">Finance</span>
+</div>
+</button>
+<!-- Card 9: News -->
+<button aria-pressed="false" class="glass-card h-20 px-6 py-4 flex items-center justify-start w-full group text-left cursor-pointer">
+<div class="flex items-center">
+<span aria-label="Newspaper" class="text-2xl mr-3" role="img">📰</span>
+<span class="text-lg font-medium text-[#1F2937]">News</span>
+</div>
+</button>
+</div>
+</section>
+<!-- END: Interest Grid Section -->
+<!-- BEGIN: Footer Actions -->
+<footer class="flex items-center justify-center gap-8 mt-4 w-full" data-purpose="navigation-buttons"><!-- Primary Action -->
+<button class="btn-gradient text-white px-12 py-3.5 rounded-full font-semibold text-lg hover:scale-105 transition-all duration-300">
+        Continue
+      </button>
+<!-- Secondary Action -->
+<a class="text-slate-500 hover:text-purple-700 font-medium text-lg transition-colors duration-200" href="#">
+        Back
+      </a></footer>
+<!-- END: Footer Actions -->
+</main>
+<!-- END: Main Container -->
+</body></html>
