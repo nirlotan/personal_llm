@@ -13,6 +13,14 @@ def list_categories() -> list[str]:
     return get_categories()
 
 
+def _clean(val) -> str:
+    """Return a clean string, replacing NaN/None with empty string."""
+    if val is None:
+        return ""
+    s = str(val)
+    return "" if s.lower() == "nan" else s
+
+
 def list_accounts_for_category(category: str) -> list[dict]:
     """Return accounts available in *category*."""
     accounts = get_accounts()
@@ -23,8 +31,8 @@ def list_accounts_for_category(category: str) -> list[dict]:
             {
                 "twitter_screen_name": row["twitter_screen_name"],
                 "twitter_name": row["twitter_name"],
-                "wikidata_label": str(row.get("wikidata_label", "")),
-                "wikidata_desc": str(row.get("wikidata_desc", "")),
+                "wikidata_label": _clean(row.get("wikidata_label")) or row["twitter_name"],
+                "wikidata_desc": _clean(row.get("wikidata_desc")),
                 "category": row["category"],
             }
         )
