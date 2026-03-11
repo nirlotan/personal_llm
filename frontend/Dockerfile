@@ -24,5 +24,6 @@ COPY --from=base /app/.next/static ./.next/static
 COPY --from=base /app/public ./public
 
 EXPOSE 3000
+# Render injects $PORT; Next.js standalone server reads PORT env var automatically
 CMD ["node", "server.js"]
 
