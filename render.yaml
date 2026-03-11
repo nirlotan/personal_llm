@@ -31,9 +31,13 @@ services:
     runtime: docker
     dockerfilePath: ./frontend/Dockerfile
     dockerContext: ./frontend
-    plan: free
     envVars:
       # Set this to your backend's Render URL after the backend service is created,
       # e.g. https://personal-llm-backend.onrender.com
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
+    dockerBuildArgs:
+      # NEXT_PUBLIC_* vars are baked into the bundle at build time — must also be
+      # passed as a Docker build arg, not just a runtime env var.
       - key: NEXT_PUBLIC_API_URL
         sync: false

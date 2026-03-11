@@ -18,6 +18,8 @@ RUN npm run build
 FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+# Bind to all interfaces so Render's proxy can reach the server
+ENV HOSTNAME=0.0.0.0
 
 COPY --from=base /app/.next/standalone ./
 COPY --from=base /app/.next/static ./.next/static
