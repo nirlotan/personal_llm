@@ -15,7 +15,11 @@ def get_firebase_app() -> firebase_admin.App:
         return firebase_admin.get_app()
 
     settings = get_settings()
-    cred = credentials.Certificate(json.loads(settings.firebase_certificate_json))
+    cert = json.loads(settings.firebase_certificate_json)
+    # TOML / env-var storage often preserves literal \n instead of real newlines in the PEM key.
+    if "private_key" in cert:
+        cert["private_key"] = cert["private_key"].replace("\\n", "\n")
+    cred = credentials.Certificate(cert)
     return firebase_admin.initialize_app(cred, {"databaseURL": settings.firebase_db_url})
 
 

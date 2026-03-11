@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import SurveyForm from "@/components/feedback/SurveyForm";
 import Dialog from "@/components/ui/Dialog";
 import { useSession } from "@/hooks/useSession";
-import { resetChat, prepareChat, getSessionInfo } from "@/lib/api";
+import { resetChat, getSessionInfo } from "@/lib/api";
 import type { FeedbackResponse } from "@/lib/types";
 
 export default function FeedbackPage() {
@@ -35,9 +35,7 @@ export default function FeedbackPage() {
     }
 
     if (result.remaining_chats > 0 && session) {
-      // Reset chat and prepare for round 2
       await resetChat(session.session_id);
-      await prepareChat(session.session_id);
       router.push("/chat");
     } else {
       // No more chats remaining — go straight to thank-you

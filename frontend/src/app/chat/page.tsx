@@ -9,6 +9,7 @@ import GradientButton from "@/components/ui/GradientButton";
 import Dialog from "@/components/ui/Dialog";
 import { useSession } from "@/hooks/useSession";
 import { useChat } from "@/hooks/useChat";
+import { getChatMessages } from "@/lib/api";
 import { MIN_MESSAGES, API_URL } from "@/lib/constants";
 
 export default function ChatPage() {
@@ -18,6 +19,7 @@ export default function ChatPage() {
 
   const [showDialog, setShowDialog] = useState(true);
   const [chatRound, setChatRound] = useState(1); // 1 or 2
+  const [isPreparing, setIsPreparing] = useState(false);
 
   // Debug: system prompt viewer
   const [isDebug, setIsDebug] = useState(false);
@@ -32,11 +34,20 @@ export default function ChatPage() {
     }
   }, [ready, session, router]);
 
-  // Hydrate messages + status from backend on mount
+  // On mount: prepare fresh chat or resume existing one
   useEffect(() => {
-    if (ready && session?.session_id) {
-      chat.initChat();
-    }
+    if (!ready || !session?.session_id) return;
+    const sessionId = session.session_id;
+    getChatMessages(sessionId).then((msgRes) => {
+      if (msgRes.messages.length === 0) {
+        // Fresh start — prepare the chat (picks persona, builds prompt, injects first message)
+        setIsPreparing(true);
+        chat.prepare().finally(() => setIsPreparing(false));
+      } else {
+        // Resuming mid-conversation — hydrate existing state
+        chat.initChat();
+      }
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, session?.session_id]);
 
@@ -64,6 +75,18 @@ export default function ChatPage() {
   };
 
   if (!ready || !session) return null;
+
+  if (isPreparing) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
+        <div className="w-16 h-16 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin" />
+        <div className="text-center">
+          <p className="text-xl font-semibold text-brand-dark mb-1">Preparing your chat...</p>
+          <p className="text-gray-500 text-sm">This may take a few seconds. Please wait.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

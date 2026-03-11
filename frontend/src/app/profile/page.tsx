@@ -10,7 +10,6 @@ import GradientButton from "@/components/ui/GradientButton";
 import Dialog from "@/components/ui/Dialog";
 import { useSession } from "@/hooks/useSession";
 import { useProfile } from "@/hooks/useProfile";
-import { prepareChat } from "@/lib/api";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -18,7 +17,6 @@ export default function ProfilePage() {
   const profile = useProfile(session?.session_id);
 
   const [showCategoryDialog, setShowCategoryDialog] = useState(true);
-  const [isPreparing, setIsPreparing] = useState(false);
 
   // Redirect if no session (wait until localStorage is read first)
   useEffect(() => {
@@ -47,17 +45,11 @@ export default function ProfilePage() {
 
   const handleNextAccounts = async () => {
     if (profile.isLastCategory) {
-      // Submit profile & prepare chat
       try {
-        setIsPreparing(true);
         await profile.submitUserProfile();
-        if (session) {
-          await prepareChat(session.session_id);
-        }
         router.push("/chat");
       } catch {
-        setIsPreparing(false);
-        // Error handled by hook
+        // Error is set in profile.error by the hook
       }
     } else {
       profile.nextCategory();
@@ -65,18 +57,6 @@ export default function ProfilePage() {
   };
 
   if (!ready || !session) return null;
-
-  if (isPreparing) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
-        <div className="w-16 h-16 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin" />
-        <div className="text-center">
-          <p className="text-xl font-semibold text-brand-dark mb-1">Preparing your chat...</p>
-          <p className="text-gray-500 text-sm">This may take a few seconds. Please wait.</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -94,26 +74,26 @@ export default function ProfilePage() {
         <div className="flex items-center justify-center gap-8">
           {!profile.categoriesConfirmed ? (
             <>
+              <GradientButton variant="secondary" onClick={() => router.push("/")}>
+                Back
+              </GradientButton>
               <GradientButton
                 onClick={handleContinueCategories}
                 disabled={!profile.canProceedCategories}
               >
                 Continue
               </GradientButton>
-              <GradientButton variant="secondary" onClick={() => router.push("/")}>
-                Back
-              </GradientButton>
             </>
           ) : (
             <>
+              <GradientButton variant="secondary" onClick={profile.resetToCategories}>
+                Back
+              </GradientButton>
               <GradientButton
                 onClick={handleNextAccounts}
                 disabled={!profile.canProceedAccounts || profile.loading}
               >
                 {profile.isLastCategory ? "Start Chatting" : "Next"}
-              </GradientButton>
-              <GradientButton variant="secondary" onClick={profile.resetToCategories}>
-                Back
               </GradientButton>
             </>
           )}
@@ -146,14 +126,14 @@ export default function ProfilePage() {
           )}
 
           <footer className="flex items-center justify-center gap-8 mt-4">
+            <GradientButton variant="secondary" onClick={() => router.push("/")}>
+              Back
+            </GradientButton>
             <GradientButton
               onClick={handleContinueCategories}
               disabled={!profile.canProceedCategories}
             >
               Continue
-            </GradientButton>
-            <GradientButton variant="secondary" onClick={() => router.push("/")}>
-              Back
             </GradientButton>
           </footer>
         </>
@@ -171,16 +151,16 @@ export default function ProfilePage() {
 
           <footer className="flex items-center justify-center gap-8 mt-4">
             <GradientButton
-              onClick={handleNextAccounts}
-              disabled={!profile.canProceedAccounts || profile.loading}
-            >
-              {profile.isLastCategory ? "Start Chatting" : "Next"}
-            </GradientButton>
-            <GradientButton
               variant="secondary"
               onClick={profile.resetToCategories}
             >
               Back
+            </GradientButton>
+            <GradientButton
+              onClick={handleNextAccounts}
+              disabled={!profile.canProceedAccounts || profile.loading}
+            >
+              {profile.isLastCategory ? "Start Chatting" : "Next"}
             </GradientButton>
           </footer>
         </>
