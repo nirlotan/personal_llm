@@ -46,7 +46,7 @@ async def submit_profile(session_id: str, body: ProfileSubmission):
 
     try:
         compute_user_embedding(session)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Could not compute profile from selected accounts")
 
     return {"status": "ok", "embedding_computed": True}

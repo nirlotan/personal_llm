@@ -1,7 +1,7 @@
 # Pydantic schemas for user profile / interest selection.
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class CategoryListResponse(BaseModel):
@@ -23,4 +23,12 @@ class AccountsResponse(BaseModel):
 class ProfileSubmission(BaseModel):
     """Selected categories and per-category accounts."""
     selected_categories: list[str] = Field(..., min_length=3, max_length=5)
-    selected_accounts: list[str] = Field(..., min_length=3)
+    selected_accounts: list[str] = Field(..., min_length=3, max_length=100)
+
+    @field_validator("selected_categories", "selected_accounts", mode="before")
+    @classmethod
+    def items_not_too_long(cls, v: list) -> list:
+        for item in v:
+            if not isinstance(item, str) or len(item) > 200:
+                raise ValueError("Each item must be a string of at most 200 characters")
+        return v

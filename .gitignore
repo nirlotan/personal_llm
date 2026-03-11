@@ -5,6 +5,9 @@ backend/.env
 *.pem
 *.key
 
+# Private docs (contain credential values & internal paths)
+DEPLOY.md
+
 # Python
 __pycache__/
 *.py[cod]

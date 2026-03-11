@@ -8,6 +8,10 @@ RUN npm ci
 
 # Build
 COPY . .
+# NEXT_PUBLIC_* vars are inlined at build time — must be passed as a build arg.
+# Render injects env vars as Docker build args automatically.
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 RUN npm run build
 
 # Production

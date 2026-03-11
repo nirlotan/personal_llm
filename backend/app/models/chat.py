@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from enum import Enum
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ChatType(str, Enum):
@@ -21,7 +21,7 @@ class ChatPrepareResponse(BaseModel):
 
 
 class ChatMessageRequest(BaseModel):
-    content: str
+    content: str = Field(..., min_length=1, max_length=2000)
 
 
 class ChatMessageResponse(BaseModel):
