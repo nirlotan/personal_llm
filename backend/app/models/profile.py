@@ -11,8 +11,8 @@ class CategoryListResponse(BaseModel):
 class Account(BaseModel):
     twitter_screen_name: str
     twitter_name: str
-    wikidata_label: str
-    wikidata_desc: str
+    display_name: str
+    description: str
     category: str
 
 

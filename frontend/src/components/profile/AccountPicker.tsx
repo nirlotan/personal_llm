@@ -26,9 +26,9 @@ export default function AccountPicker({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {accounts.map((acc) => (
           <GlassCard
-            key={acc.twitter_screen_name}
-            label={acc.wikidata_label}
-            description={acc.wikidata_desc}
+            key={`${acc.category}:${acc.twitter_screen_name}`}
+            label={acc.display_name}
+            description={acc.description}
             selected={selected.includes(acc.twitter_name)}
             onClick={() => onToggle(acc.twitter_name)}
           />

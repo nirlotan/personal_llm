@@ -3,27 +3,18 @@
 
 import GlassCard from "@/components/ui/GlassCard";
 
-// Emoji mapping for known categories
-const CATEGORY_EMOJIS: Record<string, string> = {
-  Technology: "💻",
-  Science: "🚀",
-  "Arts & Culture": "🎨",
-  Travel: "✈️",
-  "Health & Wellness": "💪",
-  Gaming: "🎮",
-  Music: "🎵",
-  Finance: "💰",
-  News: "📰",
-  Sports: "⚽",
-  Entertainment: "🎬",
-  Food: "🍕",
-  Education: "📚",
-  Fashion: "👗",
-  Politics: "🏛️",
-  Business: "💼",
-  Lifestyle: "🌿",
-  Comedy: "😂",
-};
+/**
+ * Extract a leading emoji from a category string like "🎮 Gaming & Esports".
+ * Returns [emoji, rest] or [undefined, original] when no emoji prefix is found.
+ */
+function splitEmoji(text: string): [string | undefined, string] {
+  // Match one or more emoji codepoints (including ZWJ sequences) at the start
+  const m = text.match(
+    /^(\p{Emoji_Presentation}(?:\u200d\p{Emoji_Presentation}|\ufe0f)*\s*)/u
+  );
+  if (m) return [m[1].trim(), text.slice(m[1].length)];
+  return [undefined, text];
+}
 
 interface CategoryGridProps {
   categories: string[];
@@ -39,15 +30,18 @@ export default function CategoryGrid({
   return (
     <section aria-label="Interest Selection Grid" className="w-full max-w-5xl mb-12">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {categories.map((cat) => (
-          <GlassCard
-            key={cat}
-            label={cat}
-            emoji={CATEGORY_EMOJIS[cat] ?? "📌"}
-            selected={selected.includes(cat)}
-            onClick={() => onToggle(cat)}
-          />
-        ))}
+        {categories.map((cat) => {
+          const [emoji, label] = splitEmoji(cat);
+          return (
+            <GlassCard
+              key={cat}
+              label={label}
+              emoji={emoji ?? "📌"}
+              selected={selected.includes(cat)}
+              onClick={() => onToggle(cat)}
+            />
+          );
+        })}
       </div>
     </section>
   );

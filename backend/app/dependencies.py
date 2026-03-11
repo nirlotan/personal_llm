@@ -29,23 +29,28 @@ async def startup() -> None:
     # SocialVec model
     _sv = SocialVec()
 
-    # Categories & accounts from Excel
-    xls_path = f"{data_dir}/popular_accounts_manually_validated_with_sv.xlsx"
-    sheet_names = pd.ExcelFile(xls_path).sheet_names
-    _categories = sheet_names
+    # Categories & accounts from Excel (single-sheet curated file)
+    xls_path = f"{data_dir}/curated_twitter_accounts_with_categories_and_ids.xlsx"
+    _accounts = pd.read_excel(xls_path)
 
-    frames: list[pd.DataFrame] = []
-    for sheet in sheet_names:
-        df = pd.read_excel(xls_path, sheet_name=sheet)
-        df = df[df["use"] == 1]
-        df["category"] = sheet
-        frames.append(df)
-    _accounts = pd.concat(frames, ignore_index=True)
+    # Normalise column names to match internal conventions
+    _accounts = _accounts.rename(columns={
+        "Category": "category",
+        "Twitter Account": "twitter_screen_name",
+        "Full Name": "wikidata_label",
+        "Description": "wikidata_desc",
+    })
+    # Strip leading '@' from screen names and create twitter_name alias
+    _accounts["twitter_screen_name"] = _accounts["twitter_screen_name"].str.lstrip("@")
+    _accounts["twitter_name"] = _accounts["twitter_screen_name"]
+
+    _categories = _accounts["category"].unique().tolist()
+
     _accounts["sv"] = _accounts["sv"].apply(lambda x: np.fromstring(str(x).strip("[]"), sep=" "))
     _accounts = _accounts[
         [
-            "twitter_screen_name", "twitter_user_id", "twitter_name", "use",
-            "twitter_desc", "wikidata_label", "wikidata_desc", "wikidata_desc_np",
+            "twitter_screen_name", "twitter_user_id", "twitter_name",
+            "wikidata_label", "wikidata_desc",
             "category", "sv",
         ]
     ]

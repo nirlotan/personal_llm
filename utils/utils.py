@@ -14,7 +14,7 @@ import uuid
 from datetime import datetime
 import platform
 
-categories_file_path = os.path.join("data","popular_accounts_manually_validated_with_sv.xlsx")
+categories_file_path = os.path.join("data","curated_twitter_accounts_with_categories_and_ids.xlsx")
 
 def get_my_keys():
     # Determine the path based on the operating system
@@ -36,19 +36,23 @@ def get_my_keys():
 @st.cache_resource(show_spinner="Initial loading. Please wait...")
 def load():
     sv = SocialVec()
-    categories = pd.ExcelFile(categories_file_path).sheet_names
-    accounts = pd.DataFrame()
-    for sheet in categories:
-        df_rec = pd.read_excel(categories_file_path, sheet_name=sheet)
-        df_rec = df_rec[df_rec['use']==1]
-        df_rec['category'] = sheet
-        accounts = pd.concat([accounts,df_rec])
+    accounts = pd.read_excel(categories_file_path)
+    # Normalise column names to match internal conventions
+    accounts = accounts.rename(columns={
+        "Category": "category",
+        "Twitter Account": "twitter_screen_name",
+        "Full Name": "wikidata_label",
+        "Description": "wikidata_desc",
+    })
+    accounts["twitter_screen_name"] = accounts["twitter_screen_name"].str.lstrip("@")
+    accounts["twitter_name"] = accounts["twitter_screen_name"]
+    categories = accounts["category"].unique().tolist()
 
     accounts['sv'] = accounts['sv'].apply(lambda x: np.fromstring(str(x).strip('[]'), sep=' '))
     df_dbpedia = pd.read_csv('data/dbpedia_types.csv')
     sv.entities = pd.merge(sv.entities,df_dbpedia, on='screen_name', how='left')
 
-    accounts = accounts[['twitter_screen_name','twitter_user_id','twitter_name','use','twitter_desc','wikidata_label','wikidata_desc','wikidata_desc_np','category','sv']]
+    accounts = accounts[['twitter_screen_name','twitter_user_id','twitter_name','wikidata_label','wikidata_desc','category','sv']]
 
     my_keys = get_my_keys()
     lm = dspy.LM('openai/gpt-4o', api_key=my_keys["openai_api_key"]) #openai/gpt-4o-mini

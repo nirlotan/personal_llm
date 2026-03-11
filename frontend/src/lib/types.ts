@@ -9,8 +9,8 @@ export interface SessionResponse {
 export interface Account {
   twitter_screen_name: string;
   twitter_name: string;
-  wikidata_label: string;
-  wikidata_desc: string;
+  display_name: string;
+  description: string;
   category: string;
 }
 

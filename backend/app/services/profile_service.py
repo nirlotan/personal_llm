@@ -24,15 +24,18 @@ def _clean(val) -> str:
 def list_accounts_for_category(category: str) -> list[dict]:
     """Return accounts available in *category*."""
     accounts = get_accounts()
-    subset = accounts[accounts["category"] == category]
+    subset = (
+        accounts[accounts["category"] == category]
+        .drop_duplicates(subset=["twitter_screen_name"])
+    )
     records = []
     for _, row in subset.iterrows():
         records.append(
             {
                 "twitter_screen_name": row["twitter_screen_name"],
                 "twitter_name": row["twitter_name"],
-                "wikidata_label": _clean(row.get("wikidata_label")) or row["twitter_name"],
-                "wikidata_desc": _clean(row.get("wikidata_desc")),
+                "display_name": _clean(row.get("wikidata_label")) or row["twitter_name"],
+                "description": _clean(row.get("wikidata_desc")),
                 "category": row["category"],
             }
         )
