@@ -14,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="flex items-center justify-center p-4 font-sans text-slate-800 antialiased selection:bg-purple-200 min-h-screen">
+      <body className="flex items-center justify-center p-4 font-sans text-slate-800 antialiased selection:bg-blue-200 min-h-screen">
         <main className="w-full max-w-5xl mx-auto flex flex-col items-center justify-center py-10">
           {children}
         </main>

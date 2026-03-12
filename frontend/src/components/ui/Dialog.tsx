@@ -24,14 +24,14 @@ export default function Dialog({ open, onClose, title, children }: DialogProps) 
     <dialog
       ref={dialogRef}
       onClose={onClose}
-      className="glass-panel p-8 max-w-lg w-full backdrop:bg-black/30 rounded-2xl border-none"
+      className="glass-panel p-8 max-w-lg w-full backdrop:bg-black/30 rounded-2xl"
     >
       <h2 className="text-xl font-bold text-brand-dark mb-4">{title}</h2>
       {children}
       <div className="mt-6 flex justify-end">
         <button
           onClick={onClose}
-          className="btn-gradient text-white px-8 py-2.5 rounded-full font-semibold"
+          className="btn-gradient text-white px-8 py-2.5 rounded-[0.625rem] font-semibold"
         >
           Confirm
         </button>

@@ -109,7 +109,7 @@ export default function ChatPage() {
   if (isPreparing) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
-        <div className="w-16 h-16 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin" />
+        <div className="w-16 h-16 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin" />
         <div className="text-center">
           <p className="text-xl font-semibold text-brand-dark mb-1">Preparing your chat...</p>
           <p className="text-gray-500 text-sm">This may take a few seconds. Please wait.</p>
@@ -197,12 +197,12 @@ export default function ChatPage() {
 
           {/* Debug: system prompt viewer */}
           {isDebug && (
-            <div className="mt-6 pt-4 border-t border-dashed border-gray-300">
+            <div className="mt-6 pt-4 border-t border-dashed border-gray-400">
               <p className="text-xs text-gray-400 mb-2 font-mono">🛠 Debug</p>
               <button
                 onClick={handleShowSystemPrompt}
                 disabled={promptLoading}
-                className="w-full text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-2 rounded-lg transition-colors font-mono disabled:opacity-50"
+                className="w-full text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-2 rounded-[0.625rem] transition-colors font-mono disabled:opacity-50"
               >
                 {promptLoading ? "Loading..." : "View System Prompt"}
               </button>
@@ -210,7 +210,7 @@ export default function ChatPage() {
                 <button
                   onClick={handleShowFriendsInfo}
                   disabled={friendsLoading}
-                  className="mt-2 w-full text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-2 rounded-lg transition-colors font-mono disabled:opacity-50"
+                  className="mt-2 w-full text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-2 rounded-[0.625rem] transition-colors font-mono disabled:opacity-50"
                 >
                   {friendsLoading ? "Loading..." : "View Friends Overlap"}
                 </button>
@@ -226,7 +226,7 @@ export default function ChatPage() {
           <div className="space-y-3 text-sm">
             <div className="flex gap-2">
               <span className="font-semibold text-gray-500 w-28 shrink-0">Persona:</span>
-              <span className="font-mono text-purple-700">{friendsInfo.persona}</span>
+              <span className="font-mono text-blue-700">{friendsInfo.persona}</span>
             </div>
             <div className="flex gap-2">
               <span className="font-semibold text-gray-500 w-28 shrink-0">Similarity:</span>

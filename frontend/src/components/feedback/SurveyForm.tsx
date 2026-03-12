@@ -73,7 +73,7 @@ export default function SurveyForm({ sessionId, onSubmit }: SurveyFormProps) {
           value={freeText}
           onChange={(e) => setFreeText(e.target.value)}
           rows={3}
-          className="w-full rounded-xl px-4 py-3 bg-white/40 backdrop-blur-sm border border-white/50 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400"
+          className="w-full rounded-[0.625rem] px-4 py-3 bg-white border border-slate-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
           placeholder="Share any additional thoughts..."
         />
       </div>

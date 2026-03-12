@@ -17,7 +17,7 @@ export default function GradientButton({
   if (variant === "secondary") {
     return (
       <button
-        className={`text-slate-500 hover:text-purple-700 font-medium text-lg transition-colors duration-200 ${className}`}
+        className={`text-slate-500 hover:text-blue-600 font-medium text-lg transition-colors duration-200 ${className}`}
         disabled={disabled}
         {...props}
       >
@@ -28,7 +28,7 @@ export default function GradientButton({
 
   return (
     <button
-      className={`btn-gradient text-white px-12 py-3.5 rounded-full font-semibold text-lg hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${className}`}
+      className={`btn-gradient text-white px-12 py-3.5 rounded-[0.625rem] font-semibold text-lg hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${className}`}
       disabled={disabled}
       {...props}
     >

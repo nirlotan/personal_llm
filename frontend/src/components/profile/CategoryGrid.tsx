@@ -29,7 +29,7 @@ export default function CategoryGrid({
 }: CategoryGridProps) {
   return (
     <section aria-label="Interest Selection Grid" className="w-full max-w-5xl mb-12">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
         {categories.map((cat) => {
           const [emoji, label] = splitEmoji(cat);
           return (

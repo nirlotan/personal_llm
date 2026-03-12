@@ -61,7 +61,7 @@ export default function ChatWindow({
       {/* Input area */}
       <form
         onSubmit={handleSubmit}
-        className="border-t border-white/20 p-4 flex gap-3"
+        className="border-t border-slate-200 p-4 flex gap-3"
       >
         <input
           ref={inputRef}
@@ -70,12 +70,12 @@ export default function ChatWindow({
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type your message..."
           disabled={disabled || sending}
-          className="flex-1 rounded-full px-5 py-3 bg-white/40 backdrop-blur-sm border border-white/50 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50"
+          className="flex-1 rounded-[0.625rem] px-5 py-3 bg-white border border-slate-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50"
         />
         <button
           type="submit"
           disabled={!input.trim() || sending || disabled}
-          className="btn-gradient text-white px-6 py-3 rounded-full font-semibold disabled:opacity-50"
+          className="btn-gradient text-white px-6 py-3 rounded-[0.625rem] font-semibold disabled:opacity-50"
         >
           Send
         </button>
