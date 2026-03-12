@@ -125,7 +125,7 @@ export default function ProfilePage() {
             <p className="text-red-500 text-sm mb-4">Select no more than 5 categories</p>
           )}
 
-          <footer className="flex items-center justify-center gap-8 mt-4">
+          <footer className="w-28">
             <GradientButton variant="secondary" onClick={() => router.push("/")}>
               Back
             </GradientButton>
