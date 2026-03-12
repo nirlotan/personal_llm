@@ -29,31 +29,22 @@ async def startup() -> None:
     # SocialVec model
     _sv = SocialVec()
 
-    # Categories & accounts from Excel (single-sheet curated file)
-    xls_path = f"{data_dir}/curated_twitter_accounts_with_categories_and_ids.xlsx"
-    _accounts = pd.read_excel(xls_path)
+    # Categories & accounts from pre-processed pickle
+    _accounts = pd.read_pickle(f"{data_dir}/curated_twitter_accounts.pkl")
 
-    # Normalise column names to match internal conventions
-    _accounts = _accounts.rename(columns={
-        "Category": "category",
-        "Twitter Account": "twitter_screen_name",
-        "Full Name": "wikidata_label",
-        "Description": "wikidata_desc",
-    })
-    # Strip leading '@' from screen names and create twitter_name alias
+    # Normalise: strip leading '@' and create twitter_name alias (in case pickle was
+    # created directly from the raw Excel without these transforms)
     _accounts["twitter_screen_name"] = _accounts["twitter_screen_name"].str.lstrip("@")
     _accounts["twitter_name"] = _accounts["twitter_screen_name"]
 
-    _categories = _accounts["category"].unique().tolist()
+    # Ensure sv column contains numpy arrays (handles both list and string formats)
+    if len(_accounts) > 0 and not isinstance(_accounts["sv"].iloc[0], np.ndarray):
+        _accounts["sv"] = _accounts["sv"].apply(
+            lambda x: np.array(x) if isinstance(x, list)
+            else np.fromstring(str(x).strip("[]"), sep=" " if " " in str(x) else ",")
+        )
 
-    _accounts["sv"] = _accounts["sv"].apply(lambda x: np.fromstring(str(x).strip("[]"), sep=" "))
-    _accounts = _accounts[
-        [
-            "twitter_screen_name", "twitter_user_id", "twitter_name",
-            "wikidata_label", "wikidata_desc",
-            "category", "sv",
-        ]
-    ]
+    _categories = _accounts["category"].unique().tolist()
 
     # DBpedia types merge into SocialVec entities
     df_dbpedia = pd.read_csv(f"{data_dir}/dbpedia_types.csv")
@@ -62,6 +53,10 @@ async def startup() -> None:
     # Persona details
     _persona_details = pd.read_pickle(f"{data_dir}/persona_details_v3.pkl")
     _persona_details.drop_duplicates(subset="screen_name", inplace=True)
+
+    # Unwrap sv if stored as (array, count) tuples (new pickle format)
+    if len(_persona_details) > 0 and isinstance(_persona_details["sv"].iloc[0], tuple):
+        _persona_details["sv"] = _persona_details["sv"].apply(lambda x: x[0])
 
     # DSPy LLM
     _lm = dspy.LM("openai/gpt-4o", api_key=settings.openai_api_key)

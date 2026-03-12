@@ -44,6 +44,41 @@ async def get_system_prompt(session_id: str):
     }
 
 
+@router.get("/friends-info/{session_id}")
+async def get_friends_info(session_id: str):
+    """
+    Return the similarity score and the overlapping accounts between the selected
+    persona's follows_list and the user's selected accounts (debug only).
+    Only available when SIMILARITY_WITH_FRIENDS=true.
+    """
+    _require_debug()
+    settings = get_settings()
+    if not settings.similarity_with_friends:
+        raise HTTPException(
+            status_code=403,
+            detail="similarity_with_friends is not enabled",
+        )
+    session = get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if session.user_mean_vector is None:
+        raise HTTPException(status_code=400, detail="User profile not yet computed")
+    if not session.user_for_the_chat:
+        raise HTTPException(status_code=400, detail="Chat not prepared yet")
+
+    follows = session.selected_user_follow_list or []
+    selected = session.selected_accounts or []
+    selected_lower = {a.lower() for a in selected}
+    joint = [f for f in follows if f.lower() in selected_lower]
+
+    return {
+        "persona": session.user_for_the_chat,
+        "similarity_score": round(session.selected_user_similarity, 4),
+        "selected_accounts": selected,
+        "joint_accounts": joint,
+    }
+
+
 @router.post("/prepare-chat/{session_id}")
 async def debug_prepare_chat(session_id: str, chat_type: str, persona_index: int | None = None):
     """Prepare a chat with a specific chat_type (debug only)."""

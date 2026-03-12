@@ -27,6 +27,12 @@ export default function ChatPage() {
   const [systemPromptInfo, setSystemPromptInfo] = useState<{ chat_type: string; system_message: string; user_for_the_chat: string | null } | null>(null);
   const [promptLoading, setPromptLoading] = useState(false);
 
+  // Debug: friends-info viewer
+  const [showFriendsDialog, setShowFriendsDialog] = useState(false);
+  const [friendsInfo, setFriendsInfo] = useState<{ persona: string; similarity_score: number; selected_accounts: string[]; joint_accounts: string[] } | null>(null);
+  const [friendsLoading, setFriendsLoading] = useState(false);
+  const [friendsAvailable, setFriendsAvailable] = useState(false);
+
   // Redirect if no session (wait until localStorage is read first)
   useEffect(() => {
     if (ready && !session) {
@@ -51,10 +57,34 @@ export default function ChatPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, session?.session_id]);
 
-  // Check debug flag from sessionStorage
+  // Enable debug UI if the env var is set OR if the /debug page set the sessionStorage flag
   useEffect(() => {
-    setIsDebug(sessionStorage.getItem("plm_debug") === "true");
-  }, []);
+    const envDebug = process.env.NEXT_PUBLIC_DEBUG_MODE === "true";
+    const sessionDebug = sessionStorage.getItem("plm_debug") === "true";
+    const debugOn = envDebug || sessionDebug;
+    setIsDebug(debugOn);
+
+    // Probe whether the friends-info endpoint is available (requires SIMILARITY_WITH_FRIENDS=true)
+    if (debugOn && session?.session_id) {
+      fetch(`${API_URL}/api/debug/friends-info/${session.session_id}`)
+        .then((r) => setFriendsAvailable(r.status !== 403))
+        .catch(() => setFriendsAvailable(false));
+    }
+  }, [session?.session_id]);
+
+  const handleShowFriendsInfo = async () => {
+    if (!session?.session_id) return;
+    setFriendsLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/debug/friends-info/${session.session_id}`);
+      if (res.ok) {
+        setFriendsInfo(await res.json());
+        setShowFriendsDialog(true);
+      }
+    } finally {
+      setFriendsLoading(false);
+    }
+  };
 
   const handleShowSystemPrompt = async () => {
     if (!session?.session_id) return;
@@ -176,10 +206,49 @@ export default function ChatPage() {
               >
                 {promptLoading ? "Loading..." : "View System Prompt"}
               </button>
+              {friendsAvailable && (
+                <button
+                  onClick={handleShowFriendsInfo}
+                  disabled={friendsLoading}
+                  className="mt-2 w-full text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-2 rounded-lg transition-colors font-mono disabled:opacity-50"
+                >
+                  {friendsLoading ? "Loading..." : "View Friends Overlap"}
+                </button>
+              )}
             </div>
           )}
         </div>
       </div>
+
+      {/* Debug: friends overlap dialog */}
+      {friendsInfo && (
+        <Dialog open={showFriendsDialog} onClose={() => setShowFriendsDialog(false)} title="🛠 Friends Overlap">
+          <div className="space-y-3 text-sm">
+            <div className="flex gap-2">
+              <span className="font-semibold text-gray-500 w-28 shrink-0">Persona:</span>
+              <span className="font-mono text-purple-700">{friendsInfo.persona}</span>
+            </div>
+            <div className="flex gap-2">
+              <span className="font-semibold text-gray-500 w-28 shrink-0">Similarity:</span>
+              <span className="font-mono text-gray-700">{friendsInfo.similarity_score}</span>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-500 mb-1">
+                Joint accounts ({friendsInfo.joint_accounts.length} of {friendsInfo.selected_accounts.length} selected):
+              </p>
+              {friendsInfo.joint_accounts.length === 0 ? (
+                <p className="text-xs text-gray-400 italic">None – persona was selected from full set (fallback).</p>
+              ) : (
+                <ul className="bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-1 max-h-60 overflow-y-auto">
+                  {friendsInfo.joint_accounts.map((acc) => (
+                    <li key={acc} className="font-mono text-xs text-gray-800">@{acc}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </Dialog>
+      )}
 
       {/* Debug: system prompt dialog */}
       {systemPromptInfo && (

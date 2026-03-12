@@ -45,6 +45,9 @@ class Settings(BaseSettings):
     http_proxy: str = ""
     https_proxy: str = ""
 
+    # --- Persona matching ---
+    similarity_with_friends: bool = False
+
     # --- Data paths (relative to backend/) ---
     data_dir: str = "app/data"
 

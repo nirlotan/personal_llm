@@ -61,7 +61,7 @@ export default function FeedbackPage() {
         onClose={() => setShowDialog(false)}
         title="Feedback"
       >
-        <p>Now please share with us your feedback about your experience chatting with <strong>the chatbot</strong>.</p>
+        <p>Now please share with us your feedback about your experience chatting with this chatbot.</p>
         {hasMoreChats && (
           <p className="mt-2">After the feedback you&apos;ll be asked to chat with another (different) chatbot.</p>
         )}

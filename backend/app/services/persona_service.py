@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 
+from app.config import get_settings
 from app.dependencies import get_persona_details
 from app.services.session_service import SessionData
 
@@ -20,14 +21,38 @@ def pick_random_chat_type(session: SessionData) -> str:
     return choice
 
 
-def find_most_similar_persona(session: SessionData) -> int:
-    """Return the index of the persona most similar to the user's mean vector."""
+def find_most_similar_persona(session: SessionData, friends_filter: bool = False) -> int:
+    """
+    Return the iloc position (in persona_details) of the most similar persona.
+
+    When friends_filter is True, only personas who follow at least one of the
+    user's selected accounts are considered. Falls back to the full set if no
+    candidates survive the filter.
+    """
     persona_details = get_persona_details()
-    sv_matrix = np.stack(persona_details["sv"].values)
+
+    if friends_filter and session.selected_accounts:
+        selected_lower = {a.lower() for a in session.selected_accounts}
+        mask = persona_details["follows_list"].apply(
+            lambda fl: isinstance(fl, list)
+            and any(f.lower() in selected_lower for f in fl)
+        )
+        candidates = persona_details[mask]
+        if candidates.empty:
+            # No persona follows any selected account – fall back to full set
+            candidates = persona_details
+    else:
+        candidates = persona_details
+
+    sv_matrix = np.stack(candidates["sv"].values)
     similarities = cosine_similarity(
         sv_matrix, session.user_mean_vector.reshape(1, -1)
     ).flatten()
-    return int(np.argmax(similarities))
+
+    best_in_candidates = int(np.argmax(similarities))
+    # Convert candidates-relative position back to persona_details iloc position
+    original_label = candidates.index[best_in_candidates]
+    return persona_details.index.get_loc(original_label)
 
 
 def find_top_n_similar_personas(session: SessionData, n: int = 10) -> list[dict]:
@@ -63,7 +88,10 @@ def select_persona_for_session(session: SessionData, persona_index: int | None =
     chat_type = session.chat_type
 
     if chat_type == "Personalized Like Me":
-        idx = persona_index if persona_index is not None else find_most_similar_persona(session)
+        settings = get_settings()
+        idx = persona_index if persona_index is not None else find_most_similar_persona(
+            session, friends_filter=settings.similarity_with_friends
+        )
         persona = persona_details.iloc[idx]
         session.user_for_the_chat = persona["screen_name"]
         session.selected_user_similarity = float(
