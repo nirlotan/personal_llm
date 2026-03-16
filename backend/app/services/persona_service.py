@@ -8,7 +8,7 @@ import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 
 from app.config import get_settings
-from app.dependencies import get_persona_details
+from app.dependencies import get_accounts, get_persona_details
 from app.services.session_service import SessionData
 
 
@@ -21,25 +21,50 @@ def pick_random_chat_type(session: SessionData) -> str:
     return choice
 
 
-def find_most_similar_persona(session: SessionData, friends_filter: bool = False) -> int:
+def find_most_similar_persona(
+    session: SessionData,
+    friends_filter: bool = False,
+    min_joint_categories: int = 1,
+) -> int:
     """
     Return the iloc position (in persona_details) of the most similar persona.
 
-    When friends_filter is True, only personas who follow at least one of the
-    user's selected accounts are considered. Falls back to the full set if no
-    candidates survive the filter.
+    When friends_filter is True, only personas are considered that jointly follow
+    accounts from at least *min_joint_categories* of the user's selected interest
+    categories — i.e. for each qualifying category, at least one account from that
+    category must appear in both the user's selection and the persona's follows_list.
+    Falls back to the full set if no candidates survive the filter.
     """
     persona_details = get_persona_details()
 
     if friends_filter and session.selected_accounts:
         selected_lower = {a.lower() for a in session.selected_accounts}
+
+        # Build {category -> set of selected accounts in that category}
+        accounts_df = get_accounts()
+        cat_to_accounts: dict[str, set[str]] = {}
+        for _, row in accounts_df[
+            accounts_df["twitter_name"].str.lower().isin(selected_lower)
+        ].iterrows():
+            cat_to_accounts.setdefault(row["category"], set()).add(
+                str(row["twitter_name"]).lower()
+            )
+
+        def _joint_category_count(follows_list) -> int:
+            if not isinstance(follows_list, list):
+                return 0
+            follows_lower = {f.lower() for f in follows_list}
+            return sum(
+                1 for cat_accounts in cat_to_accounts.values()
+                if cat_accounts & follows_lower
+            )
+
         mask = persona_details["follows_list"].apply(
-            lambda fl: isinstance(fl, list)
-            and any(f.lower() in selected_lower for f in fl)
+            lambda fl: _joint_category_count(fl) >= min_joint_categories
         )
         candidates = persona_details[mask]
         if candidates.empty:
-            # No persona follows any selected account – fall back to full set
+            # No persona meets the threshold – fall back to full set
             candidates = persona_details
     else:
         candidates = persona_details
@@ -90,7 +115,9 @@ def select_persona_for_session(session: SessionData, persona_index: int | None =
     if chat_type == "Personalized Like Me":
         settings = get_settings()
         idx = persona_index if persona_index is not None else find_most_similar_persona(
-            session, friends_filter=settings.similarity_with_friends
+            session,
+            friends_filter=settings.similarity_with_friends,
+            min_joint_categories=settings.min_joint_categories,
         )
         persona = persona_details.iloc[idx]
         session.user_for_the_chat = persona["screen_name"]

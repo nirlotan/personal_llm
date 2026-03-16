@@ -21,7 +21,7 @@ export default function GlassCard({
       type="button"
       aria-pressed={selected}
       onClick={onClick}
-      className={`glass-card h-12 px-3 py-2 flex items-center justify-between w-full group text-left cursor-pointer transition-all duration-200 ${
+      className={`glass-card min-h-[3rem] h-auto px-3 py-2 flex items-center justify-between w-full group text-left cursor-pointer transition-all duration-200 ${
         selected ? "glass-card-selected" : ""
       }`}
     >

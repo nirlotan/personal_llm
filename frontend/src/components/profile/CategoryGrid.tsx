@@ -28,19 +28,18 @@ export default function CategoryGrid({
   onToggle,
 }: CategoryGridProps) {
   return (
-    <section aria-label="Interest Selection Grid" className="w-full max-w-4xl mb-12">
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1">
+    <section aria-label="Interest Selection Grid" className="w-full max-w-5xl mb-12">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
         {categories.map((cat) => {
           const [emoji, label] = splitEmoji(cat);
           return (
-            <div key={cat} className="w-2/3 mx-auto">
-              <GlassCard
-                label={label}
-                emoji={emoji ?? ""}
-                selected={selected.includes(cat)}
-                onClick={() => onToggle(cat)}
-              />
-            </div>
+            <GlassCard
+              key={cat}
+              label={label}
+              emoji={emoji ?? ""}
+              selected={selected.includes(cat)}
+              onClick={() => onToggle(cat)}
+            />
           );
         })}
       </div>

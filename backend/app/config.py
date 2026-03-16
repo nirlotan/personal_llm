@@ -27,6 +27,12 @@ class Settings(BaseSettings):
     max_interests_pc: int = 6
     max_interests_mobile: int = 2
 
+    # --- Selection limits ---
+    min_categories: int = 4
+    max_categories: int = 5
+    min_accounts_per_category: int = 3
+    max_accounts_per_category: int = 5
+
     # --- OpenAI ---
     openai_api_key: str = ""
 
@@ -47,6 +53,7 @@ class Settings(BaseSettings):
 
     # --- Persona matching ---
     similarity_with_friends: bool = False
+    min_joint_categories: int = 2
 
     # --- Data paths (relative to backend/) ---
     data_dir: str = "app/data"

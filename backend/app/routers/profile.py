@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 
+from app.config import get_settings
 from app.models.profile import (
     AccountsResponse,
     Account,
@@ -37,9 +38,17 @@ async def get_accounts_for_category(category_name: str):
 @router.post("/sessions/{session_id}/profile")
 async def submit_profile(session_id: str, body: ProfileSubmission):
     """Submit selected categories and accounts; compute user embedding."""
+    settings = get_settings()
     session = get_session(session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
+
+    n_cats = len(body.selected_categories)
+    if not (settings.min_categories <= n_cats <= settings.max_categories):
+        raise HTTPException(
+            status_code=422,
+            detail=f"Select between {settings.min_categories} and {settings.max_categories} categories",
+        )
 
     session.selected_categories = body.selected_categories
     session.selected_accounts = body.selected_accounts

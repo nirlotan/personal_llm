@@ -4,8 +4,22 @@
 
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
+/* ── Site background ────────────────────────────────────────────────────── */
+/*
+  To change or disable the background, edit/remove the site-bg class below.
+  The class is applied to <body> in src/app/layout.tsx.
+*/
+.site-bg {
+  background-color: #f8f9fb;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 15% 10%,  rgba(220, 228, 240, 0.55) 0%, transparent 70%),
+    radial-gradient(ellipse 65% 55% at 85% 20%,  rgba(235, 238, 245, 0.5)  0%, transparent 65%),
+    radial-gradient(ellipse 70% 50% at 50% 85%,  rgba(210, 220, 235, 0.4)  0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 75% 65%,  rgba(230, 233, 242, 0.35) 0%, transparent 60%);
+  background-attachment: fixed;
+}
+
 body {
-  background: #ffffff;
   min-height: 100vh;
   font-family: "Inter", sans-serif;
 }

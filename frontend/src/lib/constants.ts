@@ -1,6 +1,6 @@
 // Application constants – mirroring backend config where needed on the client.
 
-export const MIN_CATEGORIES = 3;
+export const MIN_CATEGORIES = 4;
 export const MAX_CATEGORIES = 5;
 export const MIN_ACCOUNTS_PER_CATEGORY = 3;
 export const MAX_ACCOUNTS_PER_CATEGORY = 5;

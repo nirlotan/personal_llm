@@ -41,3 +41,5 @@ services:
       # passed as a Docker build arg, not just a runtime env var.
       - key: NEXT_PUBLIC_API_URL
         sync: false
+      - key: NEXT_PUBLIC_DEBUG_MODE
+        sync: false

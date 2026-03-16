@@ -3,6 +3,7 @@
 
 import GlassCard from "@/components/ui/GlassCard";
 import type { Account } from "@/lib/types";
+import { MIN_ACCOUNTS_PER_CATEGORY, MAX_ACCOUNTS_PER_CATEGORY } from "@/lib/constants";
 
 interface AccountPickerProps {
   category: string;
@@ -35,10 +36,10 @@ export default function AccountPicker({
         ))}
       </div>
       <p className="text-sm text-gray-500 mt-3">
-        {selected.length < 3
-          ? "Select 3 to 5 accounts"
-          : selected.length > 5
-          ? "Select no more than 5 accounts"
+        {selected.length < MIN_ACCOUNTS_PER_CATEGORY
+          ? `Select ${MIN_ACCOUNTS_PER_CATEGORY} to ${MAX_ACCOUNTS_PER_CATEGORY} accounts`
+          : selected.length > MAX_ACCOUNTS_PER_CATEGORY
+          ? `Select no more than ${MAX_ACCOUNTS_PER_CATEGORY} accounts`
           : `${selected.length} selected`}
       </p>
     </section>

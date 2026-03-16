@@ -29,9 +29,19 @@ export default function ChatPage() {
 
   // Debug: friends-info viewer
   const [showFriendsDialog, setShowFriendsDialog] = useState(false);
-  const [friendsInfo, setFriendsInfo] = useState<{ persona: string; similarity_score: number; selected_accounts: string[]; joint_accounts: string[] } | null>(null);
+  const [friendsInfo, setFriendsInfo] = useState<{ persona: string; similarity_score: number; selected_accounts: string[]; joint_accounts: { account: string; category: string }[] } | null>(null);
   const [friendsLoading, setFriendsLoading] = useState(false);
   const [friendsAvailable, setFriendsAvailable] = useState(false);
+
+  // Debug: top-5 similar personas viewer
+  type TopPersona = { index: number; screen_name: string; description: string; similarity: number };
+  type PersonaPreview = { persona_index: number; screen_name: string; description: string; chat_type: string; system_prompt: string; selected_accounts: string[]; joint_accounts: { account: string; category: string }[] };
+  const [showTopPersonasDialog, setShowTopPersonasDialog] = useState(false);
+  const [topPersonas, setTopPersonas] = useState<TopPersona[]>([]);
+  const [topPersonasLoading, setTopPersonasLoading] = useState(false);
+  const [showPersonaPreviewDialog, setShowPersonaPreviewDialog] = useState(false);
+  const [personaPreview, setPersonaPreview] = useState<PersonaPreview | null>(null);
+  const [personaPreviewLoading, setPersonaPreviewLoading] = useState<number | null>(null);
 
   // Redirect if no session (wait until localStorage is read first)
   useEffect(() => {
@@ -97,6 +107,35 @@ export default function ChatPage() {
       }
     } finally {
       setPromptLoading(false);
+    }
+  };
+
+  const handleShowTopPersonas = async () => {
+    if (!session?.session_id) return;
+    setTopPersonasLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/debug/personas/${session.session_id}?n=5`);
+      if (res.ok) {
+        const data = await res.json();
+        setTopPersonas(data.personas);
+        setShowTopPersonasDialog(true);
+      }
+    } finally {
+      setTopPersonasLoading(false);
+    }
+  };
+
+  const handleViewPersonaPreview = async (personaIndex: number) => {
+    if (!session?.session_id) return;
+    setPersonaPreviewLoading(personaIndex);
+    try {
+      const res = await fetch(`${API_URL}/api/debug/persona-preview/${session.session_id}/${personaIndex}`);
+      if (res.ok) {
+        setPersonaPreview(await res.json());
+        setShowPersonaPreviewDialog(true);
+      }
+    } finally {
+      setPersonaPreviewLoading(null);
     }
   };
 
@@ -215,6 +254,13 @@ export default function ChatPage() {
                   {friendsLoading ? "Loading..." : "View Friends Overlap"}
                 </button>
               )}
+              <button
+                onClick={handleShowTopPersonas}
+                disabled={topPersonasLoading}
+                className="mt-2 w-full text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-2 rounded-[0.625rem] transition-colors font-mono disabled:opacity-50"
+              >
+                {topPersonasLoading ? "Loading..." : "View Top 5 Similar Personas"}
+              </button>
             </div>
           )}
         </div>
@@ -240,8 +286,91 @@ export default function ChatPage() {
                 <p className="text-xs text-gray-400 italic">None – persona was selected from full set (fallback).</p>
               ) : (
                 <ul className="bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-1 max-h-60 overflow-y-auto">
-                  {friendsInfo.joint_accounts.map((acc) => (
-                    <li key={acc} className="font-mono text-xs text-gray-800">@{acc}</li>
+                  {friendsInfo.joint_accounts.map((item) => (
+                    <li key={item.account} className="flex items-center justify-between gap-3">
+                      <span className="font-mono text-xs text-gray-800">@{item.account}</span>
+                      <span className="text-xs text-gray-400 truncate max-w-[55%] text-right">{item.category}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </Dialog>
+      )}
+
+      {/* Debug: top-5 similar personas dialog */}
+      <Dialog open={showTopPersonasDialog} onClose={() => setShowTopPersonasDialog(false)} title="🛠 Top 5 Similar Personas" className="max-w-3xl" confirmLabel="Close">
+        <div className="space-y-2 text-sm">
+          {topPersonas.length === 0 ? (
+            <p className="text-xs text-gray-400 italic">No personas found.</p>
+          ) : (
+            <ul className="flex flex-col">
+              {topPersonas.map((p, i) => (
+                <li key={p.index}>
+                  <button
+                    onClick={() => handleViewPersonaPreview(p.index)}
+                    disabled={personaPreviewLoading === p.index}
+                    className="w-full text-left bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg px-3 py-2 transition-colors disabled:opacity-50"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-xs font-bold text-gray-400 w-4 shrink-0">#{i + 1}</span>
+                        <span className="font-mono text-xs text-blue-700 truncate">@{p.screen_name}</span>
+                      </div>
+                      <span className="text-xs text-gray-500 shrink-0 font-mono">
+                        {personaPreviewLoading === p.index ? "…" : p.similarity.toFixed(4)}
+                      </span>
+                    </div>
+                    {p.description && (
+                      <p className="text-xs text-gray-500 mt-0.5 pl-6 line-clamp-1">{p.description}</p>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="text-xs text-gray-400 pt-1">Click a persona to view its system prompt and friends overlap.</p>
+        </div>
+      </Dialog>
+
+      {/* Debug: persona preview dialog (system prompt + friends overlap) */}
+      {personaPreview && (
+        <Dialog open={showPersonaPreviewDialog} onClose={() => setShowPersonaPreviewDialog(false)} title={`🛠 Persona Preview — @${personaPreview.screen_name}`} className="max-w-3xl" confirmLabel="Close">
+          <div className="space-y-3 text-sm">
+            {personaPreview.description && (
+              <div className="flex gap-2">
+                <span className="font-semibold text-gray-500 w-24 shrink-0">Description:</span>
+                <span className="text-gray-700">{personaPreview.description}</span>
+              </div>
+            )}
+            <div className="flex gap-2">
+              <span className="font-semibold text-gray-500 w-24 shrink-0">Chat type:</span>
+              <span className="font-mono text-purple-700">{personaPreview.chat_type}</span>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-500 mb-1">System prompt:</p>
+              {personaPreview.system_prompt ? (
+                <pre className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs text-gray-800 whitespace-pre-wrap font-mono max-h-48 overflow-y-auto">
+                  {personaPreview.system_prompt}
+                </pre>
+              ) : (
+                <p className="text-xs text-gray-400 italic">(empty – vanilla mode)</p>
+              )}
+            </div>
+            <div>
+              <p className="font-semibold text-gray-500 mb-1">
+                Joint accounts ({personaPreview.joint_accounts.length} of {personaPreview.selected_accounts.length} selected):
+              </p>
+              {personaPreview.joint_accounts.length === 0 ? (
+                <p className="text-xs text-gray-400 italic">None</p>
+              ) : (
+                <ul className="bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-1 max-h-40 overflow-y-auto">
+                  {personaPreview.joint_accounts.map((item) => (
+                    <li key={item.account} className="flex items-center justify-between gap-3">
+                      <span className="font-mono text-xs text-gray-800">@{item.account}</span>
+                      <span className="text-xs text-gray-400 truncate max-w-[55%] text-right">{item.category}</span>
+                    </li>
                   ))}
                 </ul>
               )}

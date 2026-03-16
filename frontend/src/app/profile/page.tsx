@@ -10,6 +10,7 @@ import GradientButton from "@/components/ui/GradientButton";
 import Dialog from "@/components/ui/Dialog";
 import { useSession } from "@/hooks/useSession";
 import { useProfile } from "@/hooks/useProfile";
+import { MIN_CATEGORIES, MAX_CATEGORIES, MIN_ACCOUNTS_PER_CATEGORY, MAX_ACCOUNTS_PER_CATEGORY } from "@/lib/constants";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -68,8 +69,8 @@ export default function ProfilePage() {
         </h1>
         <p className="text-gray-600 text-base mb-6">
           {profile.categoriesConfirmed
-            ? `Choose 3 to 5 accounts for "${profile.currentCategory}"`
-            : "Select your interests to personalize your experience. Choose 3 to 5 topics."}
+            ? `Choose ${MIN_ACCOUNTS_PER_CATEGORY} to ${MAX_ACCOUNTS_PER_CATEGORY} accounts for "${profile.currentCategory}"`
+            : `Select your interests to personalize your experience. Choose ${MIN_CATEGORIES} to ${MAX_CATEGORIES} topics.`}
         </p>
         <div className="flex items-center justify-center gap-8">
           {!profile.categoriesConfirmed ? (
@@ -106,7 +107,7 @@ export default function ProfilePage() {
         onClose={() => setShowCategoryDialog(false)}
         title="Categories Selection"
       >
-        <p>Pick 3 to 5 topics that interest you most.</p>
+        <p>Pick {MIN_CATEGORIES} to {MAX_CATEGORIES} topics that interest you most.</p>
         <p className="text-sm text-gray-500 mt-2">
           Next, you&apos;ll choose social media accounts related to those topics.
         </p>
@@ -121,8 +122,8 @@ export default function ProfilePage() {
             onToggle={profile.toggleCategory}
           />
 
-          {profile.selectedCategories.length > 5 && (
-            <p className="text-red-500 text-sm mb-4">Select no more than 5 categories</p>
+          {profile.selectedCategories.length > MAX_CATEGORIES && (
+            <p className="text-red-500 text-sm mb-4">Select no more than {MAX_CATEGORIES} categories</p>
           )}
 
           <footer className="flex items-center justify-center gap-8 mt-4">

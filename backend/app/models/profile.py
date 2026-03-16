@@ -22,8 +22,8 @@ class AccountsResponse(BaseModel):
 
 class ProfileSubmission(BaseModel):
     """Selected categories and per-category accounts."""
-    selected_categories: list[str] = Field(..., min_length=3, max_length=5)
-    selected_accounts: list[str] = Field(..., min_length=3, max_length=100)
+    selected_categories: list[str] = Field(..., min_length=1, max_length=100)
+    selected_accounts: list[str] = Field(..., min_length=1, max_length=100)
 
     @field_validator("selected_categories", "selected_accounts", mode="before")
     @classmethod

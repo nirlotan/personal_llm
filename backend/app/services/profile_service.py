@@ -34,8 +34,8 @@ def list_accounts_for_category(category: str) -> list[dict]:
             {
                 "twitter_screen_name": row["twitter_screen_name"],
                 "twitter_name": row["twitter_name"],
-                "display_name": _clean(row.get("wikidata_label")) or row["twitter_name"],
-                "description": _clean(row.get("wikidata_desc")),
+                "display_name": _clean(row.get("Full Name")) or row["twitter_name"],
+                "description": _clean(row.get("Description")),
                 "category": row["category"],
             }
         )

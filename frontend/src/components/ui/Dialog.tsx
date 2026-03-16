@@ -8,9 +8,11 @@ interface DialogProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  className?: string;
+  confirmLabel?: string;
 }
 
-export default function Dialog({ open, onClose, title, children }: DialogProps) {
+export default function Dialog({ open, onClose, title, children, className, confirmLabel = "Confirm" }: DialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -24,7 +26,7 @@ export default function Dialog({ open, onClose, title, children }: DialogProps) 
     <dialog
       ref={dialogRef}
       onClose={onClose}
-      className="glass-panel p-8 max-w-lg w-full backdrop:bg-black/30 rounded-2xl"
+      className={`glass-panel p-8 w-full backdrop:bg-black/30 rounded-2xl ${className ?? "max-w-lg"}`}
     >
       <h2 className="text-xl font-bold text-brand-dark mb-4">{title}</h2>
       {children}
@@ -33,7 +35,7 @@ export default function Dialog({ open, onClose, title, children }: DialogProps) 
           onClick={onClose}
           className="btn-gradient text-white px-8 py-2.5 rounded-[0.625rem] font-semibold"
         >
-          Confirm
+          {confirmLabel}
         </button>
       </div>
     </dialog>
