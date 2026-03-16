@@ -9,7 +9,9 @@ services:
     healthCheckPath: /api/health
     envVars:
       - key: DEBUG
-        value: false
+        sync: false         # set to "true" in Render dashboard to enable debug endpoints
+      - key: SIMILARITY_WITH_FRIENDS
+        sync: false         # set to "true" to enable friends-overlap filtering + endpoint
       - key: OPENAI_API_KEY
         sync: false         # set manually in Render dashboard
       - key: FIREBASE_CERTIFICATE_JSON

@@ -26,6 +26,7 @@ export default function ChatPage() {
   const [showPromptDialog, setShowPromptDialog] = useState(false);
   const [systemPromptInfo, setSystemPromptInfo] = useState<{ chat_type: string; system_message: string; user_for_the_chat: string | null } | null>(null);
   const [promptLoading, setPromptLoading] = useState(false);
+  const [promptError, setPromptError] = useState<string | null>(null);
 
   // Debug: friends-info viewer
   const [showFriendsDialog, setShowFriendsDialog] = useState(false);
@@ -39,6 +40,7 @@ export default function ChatPage() {
   const [showTopPersonasDialog, setShowTopPersonasDialog] = useState(false);
   const [topPersonas, setTopPersonas] = useState<TopPersona[]>([]);
   const [topPersonasLoading, setTopPersonasLoading] = useState(false);
+  const [topPersonasError, setTopPersonasError] = useState<string | null>(null);
   const [showPersonaPreviewDialog, setShowPersonaPreviewDialog] = useState(false);
   const [personaPreview, setPersonaPreview] = useState<PersonaPreview | null>(null);
   const [personaPreviewLoading, setPersonaPreviewLoading] = useState<number | null>(null);
@@ -90,7 +92,12 @@ export default function ChatPage() {
       if (res.ok) {
         setFriendsInfo(await res.json());
         setShowFriendsDialog(true);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert(`Debug API error ${res.status}: ${err?.detail ?? res.statusText}`);
       }
+    } catch (e) {
+      alert(`Debug fetch failed: ${e}`);
     } finally {
       setFriendsLoading(false);
     }
@@ -99,12 +106,18 @@ export default function ChatPage() {
   const handleShowSystemPrompt = async () => {
     if (!session?.session_id) return;
     setPromptLoading(true);
+    setPromptError(null);
     try {
       const res = await fetch(`${API_URL}/api/debug/system-prompt/${session.session_id}`);
       if (res.ok) {
         setSystemPromptInfo(await res.json());
         setShowPromptDialog(true);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setPromptError(`Error ${res.status}: ${err?.detail ?? res.statusText}`);
       }
+    } catch (e) {
+      setPromptError(`Fetch failed: ${e}`);
     } finally {
       setPromptLoading(false);
     }
@@ -113,13 +126,19 @@ export default function ChatPage() {
   const handleShowTopPersonas = async () => {
     if (!session?.session_id) return;
     setTopPersonasLoading(true);
+    setTopPersonasError(null);
     try {
       const res = await fetch(`${API_URL}/api/debug/personas/${session.session_id}?n=5`);
       if (res.ok) {
         const data = await res.json();
         setTopPersonas(data.personas);
         setShowTopPersonasDialog(true);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setTopPersonasError(`Error ${res.status}: ${err?.detail ?? res.statusText}`);
       }
+    } catch (e) {
+      setTopPersonasError(`Fetch failed: ${e}`);
     } finally {
       setTopPersonasLoading(false);
     }
@@ -245,6 +264,7 @@ export default function ChatPage() {
               >
                 {promptLoading ? "Loading..." : "View System Prompt"}
               </button>
+              {promptError && <p className="mt-1 text-xs text-red-500 font-mono break-all">{promptError}</p>}
               {friendsAvailable && (
                 <button
                   onClick={handleShowFriendsInfo}
@@ -261,6 +281,7 @@ export default function ChatPage() {
               >
                 {topPersonasLoading ? "Loading..." : "View Top 5 Similar Personas"}
               </button>
+              {topPersonasError && <p className="mt-1 text-xs text-red-500 font-mono break-all">{topPersonasError}</p>}
             </div>
           )}
         </div>
