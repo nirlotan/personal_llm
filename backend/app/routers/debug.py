@@ -28,7 +28,15 @@ async def get_top_personas(session_id: str, n: int = 10):
         raise HTTPException(status_code=404, detail="Session not found")
     if session.user_mean_vector is None:
         raise HTTPException(status_code=400, detail="User profile not yet computed")
-    return {"personas": find_top_n_similar_personas(session, n=n)}
+    settings = get_settings()
+    return {
+        "personas": find_top_n_similar_personas(
+            session,
+            n=n,
+            friends_filter=settings.similarity_with_friends,
+            min_joint_categories=settings.min_joint_categories,
+        )
+    }
 
 
 @router.get("/system-prompt/{session_id}")

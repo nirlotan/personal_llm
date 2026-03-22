@@ -39,8 +39,9 @@ class SessionData:
             "Factual Information Request": 0,
         }
         self.messages_timing: list[int] = []
-        self.chat_messages: list[dict] = []       # [{role, content}, ...]
-        self.langchain_messages: list = []         # raw LangChain message objects
+        self.chat_messages: list[dict] = []           # [{role, content}, ...] – clean, for display
+        self.augmented_chat_messages: list[dict] = [] # [{role, content}, ...] – with [Assistant Guidance], for Firebase
+        self.langchain_messages: list = []            # raw LangChain message objects
         self.last_message_time: float = 0.0
         self.number_of_feedbacks_provided: int = 0
 

@@ -57,6 +57,9 @@ def _inject_first_message(session: SessionData) -> str | None:
     # Store in session history
     session.langchain_messages.append(HumanMessage(content=injected_prompt))
     session.langchain_messages.append(AIMessage(content=response.content))
+    # augmented_chat_messages keeps the full guidance for Firebase; chat_messages is clean for display
+    session.augmented_chat_messages.append({"role": "user", "content": injected_prompt})
+    session.augmented_chat_messages.append({"role": "assistant", "content": response.content})
     session.chat_messages.append({"role": "assistant", "content": response.content})
 
     session._injected.add(key)
@@ -111,6 +114,9 @@ def send_message(session: SessionData, user_content: str) -> dict:
     # Store in history
     session.langchain_messages.append(HumanMessage(content=augmented_prompt))
     session.langchain_messages.append(AIMessage(content=response.content))
+    # augmented_chat_messages keeps the full guidance for Firebase; chat_messages is clean for display
+    session.augmented_chat_messages.append({"role": "user", "content": augmented_prompt})
+    session.augmented_chat_messages.append({"role": "assistant", "content": response.content})
     session.chat_messages.append({"role": "user", "content": user_content})
     session.chat_messages.append({"role": "assistant", "content": response.content})
 

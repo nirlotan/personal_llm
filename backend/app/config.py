@@ -53,7 +53,7 @@ class Settings(BaseSettings):
 
     # --- Persona matching ---
     similarity_with_friends: bool = False
-    min_joint_categories: int = 2
+    min_joint_categories: int = 3
 
     # --- Data paths (relative to backend/) ---
     data_dir: str = "app/data"

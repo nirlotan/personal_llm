@@ -20,6 +20,7 @@ export default function ChatPage() {
   const [showDialog, setShowDialog] = useState(true);
   const [chatRound, setChatRound] = useState(1); // 1 or 2
   const [isPreparing, setIsPreparing] = useState(false);
+  const [isProceedingToFeedback, setIsProceedingToFeedback] = useState(false);
 
   // Debug: system prompt viewer
   const [isDebug, setIsDebug] = useState(false);
@@ -35,7 +36,7 @@ export default function ChatPage() {
   const [friendsAvailable, setFriendsAvailable] = useState(false);
 
   // Debug: top-5 similar personas viewer
-  type TopPersona = { index: number; screen_name: string; description: string; similarity: number };
+  type TopPersona = { index: number; screen_name: string; description: string; similarity: number; joint_categories: number; joint_users: number };
   type PersonaPreview = { persona_index: number; screen_name: string; description: string; chat_type: string; system_prompt: string; selected_accounts: string[]; joint_accounts: { account: string; category: string }[] };
   const [showTopPersonasDialog, setShowTopPersonasDialog] = useState(false);
   const [topPersonas, setTopPersonas] = useState<TopPersona[]>([]);
@@ -159,6 +160,8 @@ export default function ChatPage() {
   };
 
   const handleProceed = () => {
+    if (isProceedingToFeedback) return;
+    setIsProceedingToFeedback(true);
     router.push("/feedback");
   };
 
@@ -239,8 +242,19 @@ export default function ChatPage() {
 
           {chat.status?.can_proceed && (
             <div className="mt-4">
-              <GradientButton onClick={handleProceed} className="w-full">
-                ✨ Continue to Feedback
+              <GradientButton
+                onClick={handleProceed}
+                className="w-full"
+                disabled={isProceedingToFeedback}
+              >
+                {isProceedingToFeedback ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="w-4 h-4 rounded-full border-2 border-white/40 border-t-white animate-spin inline-block" />
+                    Preparing feedback...
+                  </span>
+                ) : (
+                  "✨ Continue to Feedback"
+                )}
               </GradientButton>
             </div>
           )}
@@ -339,9 +353,18 @@ export default function ChatPage() {
                         <span className="text-xs font-bold text-gray-400 w-4 shrink-0">#{i + 1}</span>
                         <span className="font-mono text-xs text-blue-700 truncate">@{p.screen_name}</span>
                       </div>
-                      <span className="text-xs text-gray-500 shrink-0 font-mono">
-                        {personaPreviewLoading === p.index ? "…" : p.similarity.toFixed(4)}
-                      </span>
+                      <div className="flex items-center gap-2 shrink-0 font-mono text-xs text-gray-500">
+                        {personaPreviewLoading === p.index ? (
+                          <span>…</span>
+                        ) : (
+                          <>
+                            {p.joint_categories > 0 && (
+                              <span title="joint categories / joint users" className="text-green-600">{p.joint_categories}cat/{p.joint_users}usr</span>
+                            )}
+                            <span>{p.similarity.toFixed(4)}</span>
+                          </>
+                        )}
+                      </div>
                     </div>
                     {p.description && (
                       <p className="text-xs text-gray-500 mt-0.5 pl-6 line-clamp-1">{p.description}</p>

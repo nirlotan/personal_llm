@@ -21,82 +21,113 @@ def pick_random_chat_type(session: SessionData) -> str:
     return choice
 
 
+def _rank_personas(
+    session: SessionData,
+    friends_filter: bool = False,
+    min_joint_categories: int = 1,
+) -> pd.DataFrame:
+    """
+    Return personas sorted for selection.
+
+    1. Compute per-persona joint-category count and joint-user count against the
+       user's selected accounts (both 0 when friends_filter is False or no accounts
+       are selected).
+    2. Apply the min_joint_categories filter when friends_filter is True and the
+       session has selected accounts; fall back to the full set if no candidates
+       survive.
+    3. Sort descending by: joint_categories → joint_users → cosine_similarity.
+
+    The returned DataFrame is a subset of persona_details (same index labels) with
+    three extra columns: ``_joint_categories``, ``_joint_users``, ``_similarity``.
+    """
+    persona_details = get_persona_details()
+
+    # Build {category -> set of selected accounts} when filtering is requested.
+    cat_to_accounts: dict[str, set[str]] | None = None
+    if friends_filter and session.selected_accounts:
+        selected_lower = {a.lower() for a in session.selected_accounts}
+        accounts_df = get_accounts()
+        for _, row in accounts_df[
+            accounts_df["twitter_name"].str.lower().isin(selected_lower)
+        ].iterrows():
+            if cat_to_accounts is None:
+                cat_to_accounts = {}
+            cat_to_accounts.setdefault(row["category"], set()).add(
+                str(row["twitter_name"]).lower()
+            )
+
+    def _joint_scores(follows_list) -> tuple[int, int]:
+        if cat_to_accounts is None or not isinstance(follows_list, list):
+            return 0, 0
+        follows_lower = {f.lower() for f in follows_list}
+        joint_cats = sum(
+            1
+            for cat_accounts in cat_to_accounts.values()
+            if cat_accounts & follows_lower
+        )
+        joint_users = sum(
+            len(cat_accounts & follows_lower)
+            for cat_accounts in cat_to_accounts.values()
+        )
+        return joint_cats, joint_users
+
+    scored = persona_details.copy()
+    joint = scored["follows_list"].apply(_joint_scores)
+    scored["_joint_categories"] = joint.apply(lambda t: t[0])
+    scored["_joint_users"] = joint.apply(lambda t: t[1])
+
+    # Apply filter, fall back to full set on empty result.
+    if cat_to_accounts is not None:
+        candidates = scored[scored["_joint_categories"] >= min_joint_categories]
+        if candidates.empty:
+            candidates = scored
+    else:
+        candidates = scored
+
+    # Cosine similarity against the user's mean vector.
+    sv_matrix = np.stack(candidates["sv"].values)
+    similarities = cosine_similarity(
+        sv_matrix, session.user_mean_vector.reshape(1, -1)
+    ).flatten()
+    candidates = candidates.copy()
+    candidates["_similarity"] = similarities
+
+    return candidates.sort_values(
+        by=["_joint_categories", "_joint_users", "_similarity"],
+        ascending=[False, False, False],
+    )
+
+
 def find_most_similar_persona(
     session: SessionData,
     friends_filter: bool = False,
     min_joint_categories: int = 1,
 ) -> int:
-    """
-    Return the iloc position (in persona_details) of the most similar persona.
-
-    When friends_filter is True, only personas are considered that jointly follow
-    accounts from at least *min_joint_categories* of the user's selected interest
-    categories — i.e. for each qualifying category, at least one account from that
-    category must appear in both the user's selection and the persona's follows_list.
-    Falls back to the full set if no candidates survive the filter.
-    """
+    """Return the iloc position (in persona_details) of the best-ranked persona."""
     persona_details = get_persona_details()
-
-    if friends_filter and session.selected_accounts:
-        selected_lower = {a.lower() for a in session.selected_accounts}
-
-        # Build {category -> set of selected accounts in that category}
-        accounts_df = get_accounts()
-        cat_to_accounts: dict[str, set[str]] = {}
-        for _, row in accounts_df[
-            accounts_df["twitter_name"].str.lower().isin(selected_lower)
-        ].iterrows():
-            cat_to_accounts.setdefault(row["category"], set()).add(
-                str(row["twitter_name"]).lower()
-            )
-
-        def _joint_category_count(follows_list) -> int:
-            if not isinstance(follows_list, list):
-                return 0
-            follows_lower = {f.lower() for f in follows_list}
-            return sum(
-                1 for cat_accounts in cat_to_accounts.values()
-                if cat_accounts & follows_lower
-            )
-
-        mask = persona_details["follows_list"].apply(
-            lambda fl: _joint_category_count(fl) >= min_joint_categories
-        )
-        candidates = persona_details[mask]
-        if candidates.empty:
-            # No persona meets the threshold – fall back to full set
-            candidates = persona_details
-    else:
-        candidates = persona_details
-
-    sv_matrix = np.stack(candidates["sv"].values)
-    similarities = cosine_similarity(
-        sv_matrix, session.user_mean_vector.reshape(1, -1)
-    ).flatten()
-
-    best_in_candidates = int(np.argmax(similarities))
-    # Convert candidates-relative position back to persona_details iloc position
-    original_label = candidates.index[best_in_candidates]
-    return persona_details.index.get_loc(original_label)
+    ranked = _rank_personas(session, friends_filter=friends_filter, min_joint_categories=min_joint_categories)
+    return persona_details.index.get_loc(ranked.index[0])
 
 
-def find_top_n_similar_personas(session: SessionData, n: int = 10) -> list[dict]:
-    """Return the top-n most similar personas with their similarity scores."""
+def find_top_n_similar_personas(
+    session: SessionData,
+    n: int = 10,
+    friends_filter: bool = False,
+    min_joint_categories: int = 1,
+) -> list[dict]:
+    """Return the top-n best-ranked personas with their scores."""
     persona_details = get_persona_details()
-    sv_matrix = np.stack(persona_details["sv"].values)
-    similarities = cosine_similarity(
-        sv_matrix, session.user_mean_vector.reshape(1, -1)
-    ).flatten()
-    top_indices = np.argsort(-similarities)[:n]
+    ranked = _rank_personas(session, friends_filter=friends_filter, min_joint_categories=min_joint_categories)
     results = []
-    for idx in top_indices:
-        row = persona_details.iloc[idx]
+    for label, row in ranked.head(n).iterrows():
         results.append(
             {
-                "index": int(idx),
+                "index": int(persona_details.index.get_loc(label)),
                 "screen_name": row["screen_name"],
                 "description": str(row.get("description", "")),
-                "similarity": float(similarities[idx]),
+                "similarity": float(row["_similarity"]),
+                "joint_categories": int(row["_joint_categories"]),
+                "joint_users": int(row["_joint_users"]),
                 "follows_list": row.get("follows_list", []),
             }
         )

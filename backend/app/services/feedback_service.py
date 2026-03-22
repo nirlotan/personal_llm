@@ -49,9 +49,9 @@ def submit_feedback(
     path_override = "/survey_results_friends" if session.friends else None
     ref = get_feedback_ref(path_override)
 
-    # Format chat messages
+    # Format chat messages – use augmented version (includes [Assistant Guidance]) for Firebase
     formatted_chat = []
-    for msg in session.chat_messages:
+    for msg in session.augmented_chat_messages:
         formatted_chat.append(f"{msg['role']}: {msg['content']}")
 
     payload = {
