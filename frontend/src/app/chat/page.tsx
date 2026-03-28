@@ -9,7 +9,7 @@ import GradientButton from "@/components/ui/GradientButton";
 import Dialog from "@/components/ui/Dialog";
 import { useSession } from "@/hooks/useSession";
 import { useChat } from "@/hooks/useChat";
-import { getChatMessages } from "@/lib/api";
+import { getChatMessages, getSessionInfo } from "@/lib/api";
 import { MIN_MESSAGES, API_URL } from "@/lib/constants";
 
 export default function ChatPage() {
@@ -18,7 +18,8 @@ export default function ChatPage() {
   const chat = useChat(session?.session_id);
 
   const [showDialog, setShowDialog] = useState(true);
-  const [chatRound, setChatRound] = useState(1); // 1 or 2
+  const [chatRound, setChatRound] = useState(1);
+  const [totalChats, setTotalChats] = useState(2);
   const [isPreparing, setIsPreparing] = useState(false);
   const [isProceedingToFeedback, setIsProceedingToFeedback] = useState(false);
 
@@ -52,6 +53,16 @@ export default function ChatPage() {
       router.push("/");
     }
   }, [ready, session, router]);
+
+  // On mount: fetch session info to determine current chat round
+  useEffect(() => {
+    if (!ready || !session?.session_id) return;
+    getSessionInfo(session.session_id).then((info) => {
+      const total = info.remaining_chat_types_count + info.number_of_feedbacks_provided;
+      setChatRound(info.number_of_feedbacks_provided + 1);
+      setTotalChats(total > 0 ? total : 2);
+    }).catch(() => {/* keep defaults */});
+  }, [ready, session?.session_id]);
 
   // On mount: prepare fresh chat or resume existing one
   useEffect(() => {
@@ -186,7 +197,7 @@ export default function ChatPage() {
           Chat with the Language Model
         </h1>
         <p className="text-gray-600 text-sm">
-          Complete all 3 task types and send at least {MIN_MESSAGES} messages to proceed.
+          Complete all 5 task types and send at least {MIN_MESSAGES} messages to proceed.
         </p>
       </header>
 
@@ -199,12 +210,13 @@ export default function ChatPage() {
         {chatRound === 1 ? (
           <>
             <p>Next, you&apos;ll chat with a large language model, exchanging a few messages.</p>
-            <p className="mt-2 font-semibold">This is chatbot {chatRound} of 2.</p>
+            <p className="mt-2 font-semibold">This is chatbot {chatRound} of {totalChats}.</p>
             <div className="mt-3 space-y-1 text-sm">
               <p>You <strong>need to</strong> complete these tasks:</p>
               <ol className="list-decimal list-inside">
                 <li>Have a <strong>casual conversation</strong></li>
-                <li>Ask for a <strong>recommendation</strong></li>
+                <li>Ask for a <strong>recommendation</strong> (twice)</li>
+                <li>Ask for the <strong>bot&apos;s opinion</strong> on something</li>
                 <li>Request <strong>factual information</strong></li>
               </ol>
             </div>

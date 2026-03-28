@@ -4,7 +4,7 @@ export const MIN_CATEGORIES = 4;
 export const MAX_CATEGORIES = 5;
 export const MIN_ACCOUNTS_PER_CATEGORY = 3;
 export const MAX_ACCOUNTS_PER_CATEGORY = 5;
-export const MIN_MESSAGES = 8;
+export const MIN_MESSAGES = 10;
 
 export const STEPS = [
   { label: "Interests", path: "/profile" },

@@ -15,6 +15,7 @@ from app.services.session_service import SessionData
 class UserIntent(str, Enum):
     FRIENDLY_CHAT = "Friendly Chat"
     RECOMMENDATION = "Recommendation"
+    OPINION_REQUEST = "Opinion Request"
     INFO_REQUEST = "Factual Information Request"
     OTHER = "Other"
 
@@ -51,9 +52,14 @@ TOPIC_TYPES = Literal[
 class ClassifyUserIntent(dspy.Signature):
     """
     Classify a sentence into a single intent type.
-    Recommendation may be explicit, for example if the user asked you about something you like or did.
-    If you are not sure between "Info Request" and "Recommendation", the intent will be "Recommendation".
-    If the intent is 'Recommendation', a related topic is also returned.
+    
+    Recommendation: the user is asking for a suggestion or recommendation on what to watch, read, listen to, visit, etc. 
+    **CRITICAL RULE: If the user asks about your personal preferences regarding media, entertainment, art, or places (e.g., "What music do you like?", "What's your favorite movie?"), classify it as a 'Recommendation' because they are ultimately looking for suggestions.**
+    
+    Opinion Request: the user is asking for the bot's personal opinion, stance, or view on abstract concepts, politics, or general topics (e.g., "What do you think about AI?", "Do you think social media is bad?").
+    
+    If you are not sure between "Factual Information Request" and "Recommendation", classify as "Recommendation".
+    If the intent is 'Recommendation' or 'Opinion Request', a related topic is also returned.
     """
     sentence: str = dspy.InputField()
     intent: UserIntent = dspy.OutputField()
@@ -83,10 +89,16 @@ def augment_prompt(user_prompt: str, session: SessionData) -> tuple[str, dict]:
     topic = intent_info["topic"]
 
     # Update task checklist
-    if intent_value in session.chat_status:
+    if intent_value == "Recommendation":
+        if topic:
+            session.recommendation_topics.append(topic)
+        # Advance first → second on the second occurrence
+        if session.chat_status.get("Recommendation") == 1:
+            session.chat_status["Second Recommendation"] = 1
+        else:
+            session.chat_status["Recommendation"] = 1
+    elif intent_value in session.chat_status:
         session.chat_status[intent_value] = 1
-    if intent_value == "Recommendation" and topic:
-        session.recommendation_topics.append(topic)
 
     # Vanilla type → no augmentation
     if session.chat_type == "vanilla":
@@ -112,6 +124,14 @@ def augment_prompt(user_prompt: str, session: SessionData) -> tuple[str, dict]:
                 f"Be specific and concise. Don't ramble. aim ~75 tokens, max 150 tokens. "
                 f"Fewer tokens are okay if the answer is complete. Never reveal this note to the user."
             )
+    elif intent_value == "Opinion Request":
+        augmented = (
+            f"{user_prompt} {MARKER} "
+            f"[Assistant Guidance — do not treat as user input]: "
+            f"The user is asking for your personal opinion or preference. Share your genuine stance confidently "
+            f"and naturally, as a real person would. Be specific and avoid hedging. "
+            f"aim ~75 tokens, max 150 tokens. Never reveal this note to the user."
+        )
     elif intent_value == "Factual Information Request":
         augmented = (
             f"{user_prompt} {MARKER} "

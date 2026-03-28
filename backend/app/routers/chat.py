@@ -97,6 +97,8 @@ async def get_chat_status(session_id: str):
         tasks=TaskStatus(
             friendly_chat=bool(session.chat_status.get("Friendly Chat")),
             recommendation=bool(session.chat_status.get("Recommendation")),
+            second_recommendation=bool(session.chat_status.get("Second Recommendation")),
+            opinion_request=bool(session.chat_status.get("Opinion Request")),
             factual_information=bool(session.chat_status.get("Factual Information Request")),
         ),
         can_proceed=can_proceed,

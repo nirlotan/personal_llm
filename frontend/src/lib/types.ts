@@ -24,6 +24,8 @@ export interface ChatMessageResponse {
 export interface TaskStatus {
   friendly_chat: boolean;
   recommendation: boolean;
+  second_recommendation: boolean;
+  opinion_request: boolean;
   factual_information: boolean;
 }
 

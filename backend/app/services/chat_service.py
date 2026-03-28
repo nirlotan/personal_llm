@@ -17,7 +17,7 @@ def _build_chat_model() -> ChatOpenAI:
     settings = get_settings()
     return ChatOpenAI(
         api_key=settings.openai_api_key,
-        model="gpt-4o",
+        model="gpt-5.4-mini",
         temperature=0.5,
     )
 
@@ -145,10 +145,13 @@ def reset_chat_for_next_round(session: SessionData) -> None:
     session.chat_status = {
         "Friendly Chat": 0,
         "Recommendation": 0,
+        "Second Recommendation": 0,
+        "Opinion Request": 0,
         "Factual Information Request": 0,
     }
     session.chat_type = None
     session.chat_messages = []
+    session.augmented_chat_messages = []
     session.langchain_messages = []
     session.last_message_time = time.time()
     session.messages_timing = []

@@ -59,7 +59,7 @@ async def startup() -> None:
         _persona_details["sv"] = _persona_details["sv"].apply(lambda x: x[0])
 
     # DSPy LLM
-    _lm = dspy.LM("openai/gpt-4o", api_key=settings.openai_api_key)
+    _lm = dspy.LM("openai/gpt-5.4-mini", api_key=settings.openai_api_key)
 
 
 def get_sv() -> SocialVec:

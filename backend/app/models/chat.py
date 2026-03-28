@@ -34,6 +34,8 @@ class ChatMessageResponse(BaseModel):
 class TaskStatus(BaseModel):
     friendly_chat: bool = False
     recommendation: bool = False
+    second_recommendation: bool = False
+    opinion_request: bool = False
     factual_information: bool = False
 
 
