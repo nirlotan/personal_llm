@@ -104,7 +104,7 @@ def augment_prompt(user_prompt: str, session: SessionData) -> tuple[str, dict]:
     if session.chat_type == "vanilla":
         return user_prompt, intent_info
 
-    MARKER = "._."
+    MARKER = ""
 
     if intent_value == "Recommendation":
         if topic and session.chat_type not in ("vanilla_with_prompt", "PERSONA_ref", "SPC_ref"):

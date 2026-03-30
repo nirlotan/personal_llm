@@ -6,4 +6,4 @@ Relevance (Recommendation),<strong>Relevance (Recommendation)</strong> - Did you
 Attention,<strong>Attention</strong> - This is an attention check: please select “3 stars” from the scale below.,"(1 = Not reading at all, 3 = You have my attention)",,
 Engagement,<strong>Engagement</strong> - Did you find chatting with this chatbot enjoyable or engaging?,"(1 = Not at all, 5 = Definitely enjoyable/engaging)","CloChat, PPS, CloChat, PPS",check this specific persona versus other persona or no persona at all
 Usefulness,<strong>Usefulness</strong> - How useful did you find this chatbot (for example with factual information)?,"(1 = Not at all, 5 = Really useful)",,
-Similarity,<strong>Similarity</strong> - To what extent did you feel that the chatbot's persona was similar to you?,"(1 = Not similar at all, 5 = Very similar)",
+Similarity,<strong>Similarity</strong> - To what extent did you feel that the chatbot's assigned persona was similar to your profile?,"(1 = Not similar at all, 5 = Very similar)",
