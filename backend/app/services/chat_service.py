@@ -146,7 +146,7 @@ def reset_chat_for_next_round(session: SessionData) -> None:
         "Friendly Chat": 0,
         "Recommendation": 0,
         "Second Recommendation": 0,
-        "Opinion Request": 0,
+        "Stance Request": 0,
         "Factual Information Request": 0,
     }
     session.chat_type = None

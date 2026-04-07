@@ -43,7 +43,7 @@ function InfoModal({ onClose }: { onClose: () => void }) {
             <strong>You need to do this twice</strong>.
           </li>
           <li>
-            <strong>Ask the Bot&apos;s Opinion</strong> — Ask the bot what it thinks about a topic.
+            <strong>Ask the Bot&apos;s stance</strong> — Ask the bot what it thinks about what may be a controversial topic.
           </li>
           <li>
             <strong>Factual Information</strong> — Request a factual fact or piece of information.
@@ -69,11 +69,11 @@ export default function TaskChecklist({
   const [showInfo, setShowInfo] = useState(false);
 
   const items = [
-    { label: "Friendly Chat", done: tasks.friendly_chat },
-    { label: "Recommendation", done: tasks.recommendation },
-    { label: "Second Recommendation", done: tasks.second_recommendation },
-    { label: "Ask the Bot's Opinion", done: tasks.opinion_request },
-    { label: "Factual Information", done: tasks.factual_information },
+    { label: "Friendly chat", done: tasks.friendly_chat },
+    { label: "Ask for recommendation", done: tasks.recommendation },
+    { label: "Second recommendation", done: tasks.second_recommendation },
+    { label: "Get the bot's stance", done: tasks.stance_request },
+    { label: "Factual information", done: tasks.factual_information },
   ];
 
   return (
@@ -101,11 +101,10 @@ export default function TaskChecklist({
           {items.map(({ label, done }) => (
             <li key={label} className="flex items-center gap-2 text-sm">
               <span
-                className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${
-                  done
-                    ? "bg-green-100 text-green-600"
-                    : "bg-gray-100 text-gray-400"
-                }`}
+                className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${done
+                  ? "bg-green-100 text-green-600"
+                  : "bg-gray-100 text-gray-400"
+                  }`}
               >
                 {done ? "✓" : "○"}
               </span>

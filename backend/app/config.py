@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["http://localhost:3000"]  # frontend origin
 
     # --- Chat constraints ---
-    minimal_number_of_messages: int = 10
+    minimal_number_of_messages: int = 8
     max_interests_pc: int = 6
     max_interests_mobile: int = 2
 

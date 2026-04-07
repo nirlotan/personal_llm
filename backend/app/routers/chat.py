@@ -26,6 +26,7 @@ from app.services.persona_service import (
 from app.services.prompt_service import build_system_prompt
 from app.services.session_service import get_session
 
+
 router = APIRouter()
 
 
@@ -98,7 +99,7 @@ async def get_chat_status(session_id: str):
             friendly_chat=bool(session.chat_status.get("Friendly Chat")),
             recommendation=bool(session.chat_status.get("Recommendation")),
             second_recommendation=bool(session.chat_status.get("Second Recommendation")),
-            opinion_request=bool(session.chat_status.get("Opinion Request")),
+            stance_request=bool(session.chat_status.get("Stance Request")),
             factual_information=bool(session.chat_status.get("Factual Information Request")),
         ),
         can_proceed=can_proceed,

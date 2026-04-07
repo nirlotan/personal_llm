@@ -61,7 +61,7 @@ export default function ChatPage() {
       const total = info.remaining_chat_types_count + info.number_of_feedbacks_provided;
       setChatRound(info.number_of_feedbacks_provided + 1);
       setTotalChats(total > 0 ? total : 2);
-    }).catch(() => {/* keep defaults */});
+    }).catch(() => {/* keep defaults */ });
   }, [ready, session?.session_id]);
 
   // On mount: prepare fresh chat or resume existing one
@@ -216,7 +216,7 @@ export default function ChatPage() {
               <ol className="list-decimal list-inside">
                 <li>Have a <strong>casual conversation</strong></li>
                 <li>Ask for a <strong>recommendation</strong> (twice)</li>
-                <li>Ask for the <strong>bot&apos;s opinion</strong> on something</li>
+                <li>Ask for the <strong>bot&apos;s stance</strong> on what may be a controversial topic</li>
                 <li>Request <strong>factual information</strong></li>
               </ol>
             </div>

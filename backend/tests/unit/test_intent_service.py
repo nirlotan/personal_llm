@@ -11,6 +11,7 @@ def _make_session(chat_type: str = "Personalized Like Me") -> SessionData:
     session.chat_status = {
         "Friendly Chat": 0,
         "Recommendation": 0,
+        "Stance Request": 0,
         "Factual Information Request": 0,
     }
     return session
