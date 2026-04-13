@@ -25,7 +25,7 @@ export default function TutorialPage() {
           Personal Chat Experiment
         </h1>
         <h2 className="text-xl text-gray-600 mb-6">
-          The Impact of Personalization on Large Language Models (LLMs)
+          Help Shape The Future of AI ChatBots!
         </h2>
       </header>
 
@@ -34,16 +34,15 @@ export default function TutorialPage() {
           Hey there, and thanks for participating!
         </p>
         <p className="text-gray-700">
-          You&apos;re taking part in a study exploring how personalization affects
-          the way people interact with large language models (LLMs).
+          In this study, you&apos;ll get hands-on experience exploring new ways we interact with everyday AI chatbots!
         </p>
 
         <div className="text-left space-y-2 bg-white/20 rounded-xl p-4">
           <p className="font-semibold text-gray-800">The experiment has the following parts:</p>
           <ol className="list-decimal list-inside space-y-1 text-gray-700">
-            <li>Pick a few topics you&apos;re interested in, and social media accounts for each topic.</li>
+            <li>Pick a few topics that interest you, and social media accounts for each topic.</li>
             <li>You&apos;ll be asked to chat with <strong>two separate language models</strong>.</li>
-            <li>After chatting <strong>with each of the models</strong> you&apos;ll be asked a few questions about the experience.</li>
+            <li>After chatting <strong>with each of the models</strong> you&apos;ll be asked for feedback.</li>
           </ol>
         </div>
 
