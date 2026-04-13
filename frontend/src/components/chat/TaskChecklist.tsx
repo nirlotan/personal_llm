@@ -17,7 +17,7 @@ function InfoModal({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4 text-sm"
+        className="bg-white rounded-2xl shadow-xl p-6 max-w-xl w-full mx-4 text-sm"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-3">
@@ -43,13 +43,13 @@ function InfoModal({ onClose }: { onClose: () => void }) {
             <strong>You need to do this twice</strong>.
           </li>
           <li>
-            <strong>Ask the Bot&apos;s stance</strong> — Ask the bot what it thinks about what may be a controversial topic.
+            <strong>Ask the Bot&apos;s stance</strong> — Request the bot&apos;s position on a potentially controversial or political issue (such as political figures, gun control, or the pro-life vs. pro-choice debate).
           </li>
           <li>
             <strong>Factual Information</strong> — Request a factual fact or piece of information.
           </li>
         </ol>
-        <div className="mt-4 text-xs bg-orange-50 text-orange-700 p-2.5 rounded-lg">
+        <div className="mt-4 text-sm bg-orange-50 text-orange-700 p-3 rounded-lg font-medium">
           📌 The chatbot is <strong>not</strong> up-to-date with current events.
         </div>
         <div className="mt-2 text-xs bg-green-50 text-green-700 p-2.5 rounded-lg">

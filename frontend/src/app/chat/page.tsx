@@ -206,6 +206,7 @@ export default function ChatPage() {
         open={showDialog}
         onClose={() => setShowDialog(false)}
         title={chatRound === 1 ? "Conversation with a Language Model" : "We're almost there..."}
+        className="max-w-2xl"
       >
         {chatRound === 1 ? (
           <>
@@ -216,11 +217,11 @@ export default function ChatPage() {
               <ol className="list-decimal list-inside">
                 <li>Have a <strong>casual conversation</strong></li>
                 <li>Ask for a <strong>recommendation</strong> (twice)</li>
-                <li>Ask for the <strong>bot&apos;s stance</strong> on what may be a controversial topic</li>
+                <li>Request the <strong>bot&apos;s position</strong> on a potentially controversial or political issue (such as political figures, gun control, or the pro-life vs. pro-choice debate)</li>
                 <li>Request <strong>factual information</strong></li>
               </ol>
             </div>
-            <div className="mt-3 text-xs bg-orange-50 p-2 rounded-lg">
+            <div className="mt-3 text-sm bg-orange-50 p-2.5 rounded-lg">
               📌 The chatbot is <strong>not</strong> up-to-date with current events.
             </div>
             <div className="mt-2 text-xs bg-green-50 p-2 rounded-lg">
