@@ -13,11 +13,17 @@ class SessionData:
         session_id: str,
         user_from_prolific: bool = False,
         friends: bool = False,
+        prolific_pid: str | None = None,
+        study_id: str | None = None,
+        session_id_prolific: str | None = None,
     ):
         self.session_id = session_id
         self.experiment_start_time = str(datetime.now())
         self.user_from_prolific = user_from_prolific
         self.friends = friends
+        self.prolific_pid = prolific_pid
+        self.study_id = study_id
+        self.session_id_prolific = session_id_prolific
 
         # Profile
         self.selected_categories: list[str] = []
@@ -68,7 +74,14 @@ def create_session(
         sid = str(uuid.uuid4())
         from_prolific = False
 
-    session = SessionData(session_id=sid, user_from_prolific=from_prolific, friends=friends)
+    session = SessionData(
+        session_id=sid,
+        user_from_prolific=from_prolific,
+        friends=friends,
+        prolific_pid=prolific_pid,
+        study_id=study_id,
+        session_id_prolific=session_id_prolific,
+    )
 
     if chat_types:
         session.remaining_chat_types = list(chat_types)  # copy

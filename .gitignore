@@ -30,3 +30,6 @@ frontend/.env*.local
 Thumbs.db
 
 archive/
+temp.py
+.gitignore
+backend/app/data/curated_twitter_accounts.xlsx

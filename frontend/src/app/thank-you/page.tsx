@@ -12,10 +12,17 @@ export default function ThankYouPage() {
 
   useEffect(() => {
     if (session) {
-      getCompletionInfo(session.session_id).then((info) => {
-        setRedirectUrl(info.redirect_url);
-        setSessionCode(info.session_id);
-      });
+      getCompletionInfo(session.session_id)
+        .then((info) => {
+          setRedirectUrl(info.redirect_url);
+          setSessionCode(info.session_id);
+        })
+        .catch(() => {
+          // Backend may have restarted (in-memory session lost). Fall back to
+          // the session_id stored in localStorage so the participant can still
+          // self-report to Prolific support.
+          setSessionCode(session.session_id);
+        });
     }
   }, [session]);
 
