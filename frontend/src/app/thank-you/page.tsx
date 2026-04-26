@@ -11,19 +11,31 @@ export default function ThankYouPage() {
   const [sessionCode, setSessionCode] = useState<string>("");
 
   useEffect(() => {
-    if (session) {
-      getCompletionInfo(session.session_id)
-        .then((info) => {
-          setRedirectUrl(info.redirect_url);
-          setSessionCode(info.session_id);
-        })
-        .catch(() => {
-          // Backend may have restarted (in-memory session lost). Fall back to
-          // the session_id stored in localStorage so the participant can still
-          // self-report to Prolific support.
-          setSessionCode(session.session_id);
-        });
-    }
+    if (!session) return;
+
+    const fallbackRedirect = () => {
+      // Prolific session IDs follow the pattern pid__study__session.
+      // If the backend is unreachable we can still redirect the user.
+      if (session.session_id.includes("__")) {
+        setRedirectUrl(
+          `https://app.prolific.com/submissions/complete?cc=${process.env.NEXT_PUBLIC_PROLIFIC_APPROVAL ?? "C3KTZS0A"}`
+        );
+      }
+      setSessionCode(session.session_id);
+    };
+
+    getCompletionInfo(session.session_id)
+      .then((info) => {
+        setRedirectUrl(info.redirect_url);
+        setSessionCode(info.session_id);
+        // If backend returned null redirect_url but user is from Prolific, apply fallback
+        if (!info.redirect_url && session.session_id.includes("__")) {
+          fallbackRedirect();
+        }
+      })
+      .catch(() => {
+        fallbackRedirect();
+      });
   }, [session]);
 
   return (

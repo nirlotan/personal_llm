@@ -53,17 +53,23 @@ async def post_feedback(session_id: str, body: FeedbackSubmission):
 async def get_completion_info(session_id: str):
     """Return Prolific redirect URL or session code for crediting."""
     session = get_session(session_id)
-    if not session:
-        raise HTTPException(status_code=404, detail="Session not found")
-
     settings = get_settings()
 
-    if session.user_from_prolific and settings.prolific_approval:
+    # Determine Prolific status: use in-memory session if available,
+    # otherwise infer from session_id format (pid__study__session).
+    # This handles the case where the backend restarted and the
+    # in-memory session store was wiped.
+    if session:
+        from_prolific = session.user_from_prolific
+    else:
+        from_prolific = "__" in session_id
+
+    if from_prolific and settings.prolific_approval:
         return {
             "redirect_url": f"https://app.prolific.com/submissions/complete?cc={settings.prolific_approval}",
-            "session_id": session.session_id,
+            "session_id": session_id,
         }
     return {
         "redirect_url": None,
-        "session_id": session.session_id,
+        "session_id": session_id,
     }
