@@ -33,3 +33,5 @@ archive/
 temp.py
 .gitignore
 backend/app/data/curated_twitter_accounts.xlsx
+backend/offline_edit.ipynb
+data_preperation/data/Archive.zip

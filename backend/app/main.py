@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.dependencies import startup
-from app.routers import sessions, profile, chat, feedback, debug
+from app.routers import sessions, profile, chat, feedback, debug, admin
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -74,8 +74,8 @@ def create_app() -> FastAPI:
         CORSMiddleware,
         allow_origins=settings.cors_origins,
         allow_credentials=False,
-        allow_methods=["GET", "POST"],
-        allow_headers=["Content-Type"],
+        allow_methods=["GET", "POST", "PUT", "OPTIONS"],
+        allow_headers=["Content-Type", "Authorization", "Accept", "Origin"],
     )
 
     # Routers
@@ -84,6 +84,7 @@ def create_app() -> FastAPI:
     app.include_router(chat.router, prefix="/api/sessions", tags=["chat"])
     app.include_router(feedback.router, prefix="/api", tags=["feedback"])
     app.include_router(debug.router, prefix="/api/debug", tags=["debug"])
+    app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 
     @app.get("/api/health")
     async def health():

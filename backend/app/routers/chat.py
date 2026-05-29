@@ -25,9 +25,21 @@ from app.services.persona_service import (
 )
 from app.services.prompt_service import build_system_prompt
 from app.services.session_service import get_session
+from app.runtime_settings import get_effective_types_of_chat_list
 
 
 router = APIRouter()
+
+
+def _sync_chat_types_for_unstarted_session(session) -> None:
+    """Apply current runtime chat types only before the first chat starts."""
+    if session.chat_messages:
+        return
+    if session.chat_type is not None:
+        return
+    if session.number_of_feedbacks_provided > 0:
+        return
+    session.remaining_chat_types = list(get_effective_types_of_chat_list())
 
 
 @router.post("/{session_id}/chat/prepare", response_model=ChatPrepareResponse)
@@ -36,6 +48,10 @@ async def prepare_chat(session_id: str, persona_index: int | None = None):
     session = get_session(session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
+
+    # A session can be created before admin runtime settings are changed.
+    # Re-sync pending chat types right before the very first prepare call.
+    _sync_chat_types_for_unstarted_session(session)
 
     # Pick a random chat type from remaining
     chat_type = pick_random_chat_type(session)

@@ -9,7 +9,7 @@ import GradientButton from "@/components/ui/GradientButton";
 import Dialog from "@/components/ui/Dialog";
 import { useSession } from "@/hooks/useSession";
 import { useChat } from "@/hooks/useChat";
-import { getChatMessages, getSessionInfo } from "@/lib/api";
+import { getChatMessages, getSessionInfo, getDebugStatus } from "@/lib/api";
 import { MIN_MESSAGES, API_URL } from "@/lib/constants";
 
 export default function ChatPage() {
@@ -26,7 +26,7 @@ export default function ChatPage() {
   // Debug: system prompt viewer
   const [isDebug, setIsDebug] = useState(false);
   const [showPromptDialog, setShowPromptDialog] = useState(false);
-  const [systemPromptInfo, setSystemPromptInfo] = useState<{ chat_type: string; system_message: string; user_for_the_chat: string | null } | null>(null);
+  const [systemPromptInfo, setSystemPromptInfo] = useState<{ chat_type: string; system_message: string; user_for_the_chat: string | null; selected_user_similarity: number } | null>(null);
   const [promptLoading, setPromptLoading] = useState(false);
   const [promptError, setPromptError] = useState<string | null>(null);
 
@@ -81,15 +81,19 @@ export default function ChatPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, session?.session_id]);
 
-  // Enable debug UI if the env var is set OR if the /debug page set the sessionStorage flag
+  // Enable debug UI based on the backend's runtime debug flag or if the /debug page set the sessionStorage flag
   useEffect(() => {
-    const envDebug = process.env.NEXT_PUBLIC_DEBUG_MODE === "true";
     const sessionDebug = sessionStorage.getItem("plm_debug") === "true";
-    const debugOn = envDebug || sessionDebug;
-    setIsDebug(debugOn);
+    if (sessionDebug) {
+      setIsDebug(true);
+      return;
+    }
+    getDebugStatus()
+      .then(({ debug }) => setIsDebug(debug))
+      .catch(() => setIsDebug(false));
 
     // Probe whether the friends-info endpoint is available (requires SIMILARITY_WITH_FRIENDS=true)
-    if (debugOn && session?.session_id) {
+    if (session?.session_id) {
       fetch(`${API_URL}/api/debug/friends-info/${session.session_id}`)
         .then((r) => setFriendsAvailable(r.status !== 403))
         .catch(() => setFriendsAvailable(false));
@@ -448,6 +452,12 @@ export default function ChatPage() {
               <div className="flex gap-2">
                 <span className="font-semibold text-gray-500 w-24 shrink-0">Persona:</span>
                 <span className="font-mono text-gray-700">{systemPromptInfo.user_for_the_chat}</span>
+              </div>
+            )}
+            {systemPromptInfo.selected_user_similarity != null && (
+              <div className="flex gap-2">
+                <span className="font-semibold text-gray-500 w-24 shrink-0">Similarity:</span>
+                <span className="font-mono text-gray-700">{systemPromptInfo.selected_user_similarity}</span>
               </div>
             )}
             <div className="mt-3">

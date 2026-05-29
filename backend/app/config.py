@@ -35,6 +35,10 @@ class Settings(BaseSettings):
 
     # --- OpenAI ---
     openai_api_key: str = ""
+    openai_model: str = "gpt-5.4-mini"
+
+    # --- Admin ---
+    admin_password: str = "admin"
 
     # --- Firebase ---
     firebase_certificate_json: str = ""  # raw JSON string
@@ -52,8 +56,12 @@ class Settings(BaseSettings):
     https_proxy: str = ""
 
     # --- Persona matching ---
-    similarity_with_friends: bool = False
+    # "disabled" = rank by cosine similarity only
+    # "friends" = rank by joint categories/accounts first, then cosine
+    # "combined" = filter by similarity threshold, then rank by joint categories/accounts
+    similarity_with_friends: str = "disabled"
     min_joint_categories: int = 3
+    similarity_threshold: float = 0.3
 
     # --- Data paths (relative to backend/) ---
     data_dir: str = "app/data"

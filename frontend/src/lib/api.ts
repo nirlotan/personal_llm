@@ -134,3 +134,55 @@ export function getCompletionInfo(
 ): Promise<CompletionInfo> {
   return get(`/api/sessions/${sessionId}/completion`);
 }
+
+// ── Admin ──────────────────────────────────────────────────────────────────
+
+export interface AdminSettings {
+  types_of_chat_list: string[];
+  similarity_with_friends: string;
+  similarity_threshold: number;
+  openai_model: string;
+  debug: boolean;
+  persona_bank: string;
+}
+
+export interface AdminOptions {
+  allowed_chat_types: string[];
+  allowed_models: string[];
+  allowed_similarity_modes: string[];
+  allowed_persona_banks: string[];
+}
+
+function putJson<T>(path: string, body: unknown, token: string): Promise<T> {
+  return fetch(`${API_URL}${path}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify(body),
+  }).then((r) => json<T>(r));
+}
+
+function getAuth<T>(path: string, token: string): Promise<T> {
+  return fetch(`${API_URL}${path}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  }).then((r) => json<T>(r));
+}
+
+export function adminLogin(password: string): Promise<{ token: string }> {
+  return post("/api/admin/login", { password });
+}
+
+export function adminGetOptions(token: string): Promise<AdminOptions> {
+  return getAuth("/api/admin/options", token);
+}
+
+export function adminGetSettings(token: string): Promise<AdminSettings> {
+  return getAuth("/api/admin/settings", token);
+}
+
+export function adminPutSettings(token: string, settings: AdminSettings): Promise<AdminSettings> {
+  return putJson("/api/admin/settings", settings, token);
+}
+
+export function getDebugStatus(): Promise<{ debug: boolean }> {
+  return get("/api/debug/status");
+}

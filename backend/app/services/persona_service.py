@@ -9,6 +9,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 from app.config import get_settings
 from app.dependencies import get_accounts, get_persona_details
+from app.runtime_settings import get_effective_similarity_with_friends, get_effective_similarity_threshold
 from app.services.session_service import SessionData
 
 
@@ -23,24 +24,27 @@ def pick_random_chat_type(session: SessionData) -> str:
 
 def _rank_personas(
     session: SessionData,
-    friends_filter: bool = False,
+    similarity_mode: str = "disabled",
     min_joint_categories: int = 1,
+    similarity_threshold: float = 0.3,
 ) -> pd.DataFrame:
     """
     Return personas sorted for selection.
 
-    1. Compute per-persona joint-category count and joint-user count against the
-       user's selected accounts (both 0 when friends_filter is False or no accounts
-       are selected).
-    2. Apply the min_joint_categories filter when friends_filter is True and the
-       session has selected accounts; fall back to the full set if no candidates
-       survive.
-    3. Sort descending by: joint_categories → joint_users → cosine_similarity.
+    Modes:
+    - "disabled": rank by cosine similarity only.
+    - "friends": rank by joint_categories → joint_users → cosine_similarity.
+      Apply min_joint_categories filter when the session has selected accounts;
+      fall back to the full set if no candidates survive.
+    - "combined": first filter to personas whose cosine similarity exceeds
+      similarity_threshold, then rank by joint_categories → joint_users →
+      cosine_similarity (like "friends" but only among high-similarity personas).
 
     The returned DataFrame is a subset of persona_details (same index labels) with
     three extra columns: ``_joint_categories``, ``_joint_users``, ``_similarity``.
     """
     persona_details = get_persona_details()
+    friends_filter = similarity_mode in ("friends", "combined")
 
     # Build {category -> set of selected accounts} when filtering is requested.
     cat_to_accounts: dict[str, set[str]] | None = None
@@ -76,48 +80,80 @@ def _rank_personas(
     scored["_joint_categories"] = joint.apply(lambda t: t[0])
     scored["_joint_users"] = joint.apply(lambda t: t[1])
 
-    # Apply filter, fall back to full set on empty result.
-    if cat_to_accounts is not None:
-        candidates = scored[scored["_joint_categories"] >= min_joint_categories]
-        if candidates.empty:
-            candidates = scored
-    else:
-        candidates = scored
-
-    # Cosine similarity against the user's mean vector.
-    sv_matrix = np.stack(candidates["sv"].values)
-    similarities = cosine_similarity(
+    # Cosine similarity against the user's mean vector (computed early for combined mode).
+    sv_matrix = np.stack(scored["sv"].values)
+    all_similarities = cosine_similarity(
         sv_matrix, session.user_mean_vector.reshape(1, -1)
     ).flatten()
-    candidates = candidates.copy()
-    candidates["_similarity"] = similarities
+    scored["_similarity"] = all_similarities
 
-    return candidates.sort_values(
-        by=["_joint_categories", "_joint_users", "_similarity"],
-        ascending=[False, False, False],
-    )
+    # Apply filtering based on mode.
+    if similarity_mode == "combined":
+        # First filter by similarity threshold.
+        candidates = scored[scored["_similarity"] >= similarity_threshold]
+        if candidates.empty:
+            candidates = scored
+        # Then apply min_joint_categories filter within threshold-passing personas.
+        if cat_to_accounts is not None:
+            filtered = candidates[candidates["_joint_categories"] >= min_joint_categories]
+            if not filtered.empty:
+                candidates = filtered
+    elif similarity_mode == "friends":
+        # Apply min_joint_categories filter.
+        if cat_to_accounts is not None:
+            candidates = scored[scored["_joint_categories"] >= min_joint_categories]
+            if candidates.empty:
+                candidates = scored
+        else:
+            candidates = scored
+    else:
+        # "disabled" – no filtering, rank by similarity only.
+        candidates = scored
+
+    # Sort: for "disabled" mode, only similarity matters.
+    if similarity_mode == "disabled":
+        candidates = candidates.sort_values(by=["_similarity"], ascending=[False])
+    else:
+        candidates = candidates.sort_values(
+            by=["_joint_categories", "_joint_users", "_similarity"],
+            ascending=[False, False, False],
+        )
+
+    return candidates
 
 
 def find_most_similar_persona(
     session: SessionData,
-    friends_filter: bool = False,
+    similarity_mode: str = "disabled",
     min_joint_categories: int = 1,
+    similarity_threshold: float = 0.3,
 ) -> int:
     """Return the iloc position (in persona_details) of the best-ranked persona."""
     persona_details = get_persona_details()
-    ranked = _rank_personas(session, friends_filter=friends_filter, min_joint_categories=min_joint_categories)
+    ranked = _rank_personas(
+        session,
+        similarity_mode=similarity_mode,
+        min_joint_categories=min_joint_categories,
+        similarity_threshold=similarity_threshold,
+    )
     return persona_details.index.get_loc(ranked.index[0])
 
 
 def find_top_n_similar_personas(
     session: SessionData,
     n: int = 10,
-    friends_filter: bool = False,
+    similarity_mode: str = "disabled",
     min_joint_categories: int = 1,
+    similarity_threshold: float = 0.3,
 ) -> list[dict]:
     """Return the top-n best-ranked personas with their scores."""
     persona_details = get_persona_details()
-    ranked = _rank_personas(session, friends_filter=friends_filter, min_joint_categories=min_joint_categories)
+    ranked = _rank_personas(
+        session,
+        similarity_mode=similarity_mode,
+        min_joint_categories=min_joint_categories,
+        similarity_threshold=similarity_threshold,
+    )
     results = []
     for label, row in ranked.head(n).iterrows():
         results.append(
@@ -147,8 +183,9 @@ def select_persona_for_session(session: SessionData, persona_index: int | None =
         settings = get_settings()
         idx = persona_index if persona_index is not None else find_most_similar_persona(
             session,
-            friends_filter=settings.similarity_with_friends,
+            similarity_mode=get_effective_similarity_with_friends(),
             min_joint_categories=settings.min_joint_categories,
+            similarity_threshold=get_effective_similarity_threshold(),
         )
         persona = persona_details.iloc[idx]
         session.user_for_the_chat = persona["screen_name"]
@@ -169,8 +206,16 @@ def select_persona_for_session(session: SessionData, persona_index: int | None =
         idx = random.randint(0, len(persona_details) - 1)
         persona = persona_details.iloc[idx]
         session.user_for_the_chat = persona["screen_name"]
-        session.selected_user_similarity = 0.0
         session.user_embeddings = np.array(persona["sv"])
+        if session.user_mean_vector is not None:
+            session.selected_user_similarity = float(
+                cosine_similarity(
+                    np.array(persona["sv"]).reshape(1, -1),
+                    session.user_mean_vector.reshape(1, -1),
+                ).flatten()[0]
+            )
+        else:
+            session.selected_user_similarity = 0.0
         session.selected_user_follow_list = persona.get("follows_list", [])
         return {
             "screen_name": persona["screen_name"],

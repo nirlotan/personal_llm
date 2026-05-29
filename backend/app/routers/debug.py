@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException
 
 from app.config import get_settings
 from app.dependencies import get_accounts
+from app.runtime_settings import get_effective_debug, get_effective_similarity_with_friends, get_effective_similarity_threshold
 from app.services.persona_service import find_top_n_similar_personas, pick_random_chat_type, select_persona_for_session
 from app.services.prompt_service import build_system_prompt
 from app.services.chat_service import get_first_message
@@ -14,9 +15,14 @@ router = APIRouter()
 
 
 def _require_debug():
-    settings = get_settings()
-    if not settings.debug:
+    if not get_effective_debug():
         raise HTTPException(status_code=403, detail="Debug mode is not enabled")
+
+
+@router.get("/status")
+async def debug_status():
+    """Return whether debug mode is currently active (public, no auth required)."""
+    return {"debug": get_effective_debug()}
 
 
 @router.get("/personas/{session_id}")
@@ -33,8 +39,9 @@ async def get_top_personas(session_id: str, n: int = 10):
         "personas": find_top_n_similar_personas(
             session,
             n=n,
-            friends_filter=settings.similarity_with_friends,
+            similarity_mode=get_effective_similarity_with_friends(),
             min_joint_categories=settings.min_joint_categories,
+            similarity_threshold=get_effective_similarity_threshold(),
         )
     }
 
@@ -50,6 +57,7 @@ async def get_system_prompt(session_id: str):
         "chat_type": session.chat_type,
         "system_message": session.system_message or "(empty – vanilla mode)",
         "user_for_the_chat": session.user_for_the_chat,
+        "selected_user_similarity": round(session.selected_user_similarity, 4),
     }
 
 
@@ -62,7 +70,7 @@ async def get_friends_info(session_id: str):
     """
     _require_debug()
     settings = get_settings()
-    if not settings.similarity_with_friends:
+    if not get_effective_similarity_with_friends():
         raise HTTPException(
             status_code=403,
             detail="similarity_with_friends is not enabled",

@@ -9,6 +9,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 
 from app.config import get_settings
+from app.runtime_settings import get_effective_openai_model
 from app.services.intent_service import augment_prompt
 from app.services.session_service import SessionData
 
@@ -17,7 +18,7 @@ def _build_chat_model() -> ChatOpenAI:
     settings = get_settings()
     return ChatOpenAI(
         api_key=settings.openai_api_key,
-        model="gpt-5.4-mini",
+        model=get_effective_openai_model(),
         temperature=0.5,
     )
 

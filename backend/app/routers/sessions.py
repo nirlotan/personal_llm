@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException
 
 from app.config import get_settings
 from app.models import SessionCreate, SessionResponse
+from app.runtime_settings import get_effective_types_of_chat_list
 from app.services.session_service import create_session, get_session
 
 router = APIRouter()
@@ -19,7 +20,7 @@ async def create_new_session(body: SessionCreate):
         study_id=body.study_id,
         session_id_prolific=body.session_id_prolific,
         friends=body.friends,
-        chat_types=settings.types_of_chat_list,
+        chat_types=get_effective_types_of_chat_list(),
     )
     return SessionResponse(
         session_id=session.session_id,

@@ -80,3 +80,15 @@ def test_persona_ref_no_follow_list_in_recommendation():
 
     assert "@elonmusk" not in result
     assert "._." in result
+
+
+def test_classify_intent_falls_back_to_other_on_provider_error():
+    """Provider errors should not crash chat; classify_intent should degrade gracefully."""
+    from unittest.mock import patch
+
+    from app.services.intent_service import classify_intent
+
+    with patch("app.services.intent_service.dspy.Predict", side_effect=RuntimeError("Connection error")):
+        result = classify_intent("hello")
+
+    assert result == {"intent": "Other", "topic": None}
