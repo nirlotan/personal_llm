@@ -39,6 +39,14 @@ source "$VENV/bin/activate"
 
 # ── start backend ──────────────────────────────────────────────────────────────
 
+# Kill any stale process already occupying the backend port
+STALE_PIDS=$(lsof -ti ":$BACKEND_PORT" 2>/dev/null || true)
+if [[ -n "$STALE_PIDS" ]]; then
+  warn "Port $BACKEND_PORT in use (PIDs: $STALE_PIDS) — killing stale process..."
+  echo "$STALE_PIDS" | xargs kill 2>/dev/null || true
+  sleep 1
+fi
+
 log "Starting backend on port $BACKEND_PORT..."
 
 (

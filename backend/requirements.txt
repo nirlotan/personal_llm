@@ -1,0 +1,4 @@
+# Local/dev install entrypoint.
+# Render's Docker build installs from pyproject.toml via `pip install .`.
+# Keeping this as `-e .` avoids duplicating dependency declarations.
+-e .

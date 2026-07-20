@@ -25,7 +25,11 @@ from app.services.persona_service import (
 )
 from app.services.prompt_service import build_system_prompt
 from app.services.session_service import get_session
-from app.runtime_settings import get_effective_types_of_chat_list
+from app.runtime_settings import (
+    get_effective_minimal_number_of_messages,
+    get_effective_types_of_chat_list,
+    get_effective_required_tasks,
+)
 
 
 router = APIRouter()
@@ -105,9 +109,8 @@ async def get_chat_status(session_id: str):
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    settings = get_settings()
     msg_count = get_message_count(session)
-    can_proceed = check_can_proceed(session, settings.minimal_number_of_messages)
+    can_proceed = check_can_proceed(session, get_effective_minimal_number_of_messages())
 
     return ChatStatusResponse(
         message_count=msg_count,
@@ -119,6 +122,7 @@ async def get_chat_status(session_id: str):
             factual_information=bool(session.chat_status.get("Factual Information Request")),
         ),
         can_proceed=can_proceed,
+        required_tasks=get_effective_required_tasks(),
     )
 
 

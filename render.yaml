@@ -14,6 +14,10 @@ services:
         sync: false         # set to "true" to enable friends-overlap filtering + endpoint
       - key: OPENAI_API_KEY
         sync: false         # set manually in Render dashboard
+      - key: GOOGLE_AI_STUDIO_API_KEY
+        sync: false         # set manually in Render dashboard
+      - key: GEMMA_MODEL
+        value: gemma-4-26b-a4b-it
       - key: FIREBASE_CERTIFICATE_JSON
         sync: false         # set manually in Render dashboard (single-line JSON)
       - key: FIREBASE_DB_URL

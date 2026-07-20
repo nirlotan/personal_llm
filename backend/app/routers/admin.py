@@ -6,7 +6,7 @@ from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.config import get_settings
 from app.runtime_settings import (
@@ -14,11 +14,15 @@ from app.runtime_settings import (
     ALLOWED_MODELS,
     ALLOWED_SIMILARITY_MODES,
     ALLOWED_PERSONA_BANKS,
+    ALLOWED_RECOMMENDATION_MODES,
+    ALL_TASK_KEYS,
+    DEFAULT_REQUIRED_TASKS,
     get_current_overrides,
     get_effective_persona_bank,
+    get_effective_required_tasks,
     update_runtime_settings,
 )
-from app.dependencies import reload_persona_details
+from app.dependencies import get_loaded_persona_bank, reload_persona_details
 
 router = APIRouter()
 
@@ -50,9 +54,15 @@ class AdminSettings(BaseModel):
     types_of_chat_list: list[str]
     similarity_with_friends: str
     similarity_threshold: float
+    random_persona_similarity_threshold: float
+    minimal_number_of_messages: int
     openai_model: str
     debug: bool
     persona_bank: str
+    recommendation_mode: str
+    required_tasks: dict[str, bool] = Field(
+        default_factory=lambda: dict(DEFAULT_REQUIRED_TASKS)
+    )
 
 
 class OptionsResponse(BaseModel):
@@ -60,6 +70,7 @@ class OptionsResponse(BaseModel):
     allowed_models: list[str]
     allowed_similarity_modes: list[str]
     allowed_persona_banks: list[str]
+    allowed_recommendation_modes: list[str]
 
 
 # ── Endpoints ────────────────────────────────────────────────────────────────
@@ -84,6 +95,7 @@ async def get_options(_: None = Depends(_require_admin)) -> OptionsResponse:
         allowed_models=ALLOWED_MODELS,
         allowed_similarity_modes=ALLOWED_SIMILARITY_MODES,
         allowed_persona_banks=ALLOWED_PERSONA_BANKS,
+        allowed_recommendation_modes=ALLOWED_RECOMMENDATION_MODES,
     )
 
 
@@ -116,6 +128,21 @@ async def put_admin_settings(
             status_code=422,
             detail=f"Invalid similarity mode '{body.similarity_with_friends}'. Allowed: {ALLOWED_SIMILARITY_MODES}",
         )
+    if not 0.0 <= body.similarity_threshold <= 1.0:
+        raise HTTPException(
+            status_code=422,
+            detail="similarity_threshold must be between 0.0 and 1.0",
+        )
+    if not 0.0 <= body.random_persona_similarity_threshold <= 1.0:
+        raise HTTPException(
+            status_code=422,
+            detail="random_persona_similarity_threshold must be between 0.0 and 1.0",
+        )
+    if body.minimal_number_of_messages < 1:
+        raise HTTPException(
+            status_code=422,
+            detail="minimal_number_of_messages must be at least 1",
+        )
     if not body.types_of_chat_list:
         raise HTTPException(
             status_code=422,
@@ -126,9 +153,26 @@ async def put_admin_settings(
             status_code=422,
             detail=f"Invalid persona_bank '{body.persona_bank}'. Allowed: {ALLOWED_PERSONA_BANKS}",
         )
+    if body.recommendation_mode not in ALLOWED_RECOMMENDATION_MODES:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Invalid recommendation_mode '{body.recommendation_mode}'. Allowed: {ALLOWED_RECOMMENDATION_MODES}",
+        )
+    invalid_task_keys = [k for k in body.required_tasks if k not in ALL_TASK_KEYS]
+    if invalid_task_keys:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Invalid required_tasks keys: {invalid_task_keys}. Allowed: {ALL_TASK_KEYS}",
+        )
+    if not any(body.required_tasks.get(k, False) for k in ALL_TASK_KEYS):
+        raise HTTPException(
+            status_code=422,
+            detail="At least one task must be required",
+        )
 
-    # Hot-swap persona bank in memory if it changed
-    if body.persona_bank != get_effective_persona_bank():
+    # Hot-swap persona bank in memory if it changed from what's currently loaded.
+    loaded_bank = get_loaded_persona_bank() or get_effective_persona_bank()
+    if body.persona_bank != loaded_bank:
         try:
             reload_persona_details(body.persona_bank)
         except FileNotFoundError:
@@ -141,8 +185,12 @@ async def put_admin_settings(
         types_of_chat_list=body.types_of_chat_list,
         similarity_with_friends=body.similarity_with_friends,
         similarity_threshold=body.similarity_threshold,
+        random_persona_similarity_threshold=body.random_persona_similarity_threshold,
+        minimal_number_of_messages=body.minimal_number_of_messages,
         openai_model=body.openai_model,
         debug=body.debug,
         persona_bank=body.persona_bank,
+        recommendation_mode=body.recommendation_mode,
+        required_tasks=body.required_tasks,
     )
     return AdminSettings(**get_current_overrides())

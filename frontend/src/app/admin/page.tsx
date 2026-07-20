@@ -108,6 +108,13 @@ export default function AdminPage() {
     setSettings({ ...settings, types_of_chat_list: next });
   }
 
+  function toggleRequiredTask(key: string) {
+    if (!settings) return;
+    const current = settings.required_tasks ?? {};
+    const next = { ...current, [key]: !current[key] };
+    setSettings({ ...settings, required_tasks: next });
+  }
+
   // ── Render: login gate ───────────────────────────────────────────────────
 
   if (!token) {
@@ -249,7 +256,7 @@ export default function AdminPage() {
                   type="range"
                   min="0"
                   max="1"
-                  step="0.05"
+                  step="0.01"
                   value={settings.similarity_threshold}
                   onChange={(e) => setSettings({ ...settings, similarity_threshold: parseFloat(e.target.value) })}
                   className="flex-1 accent-brand-dark"
@@ -260,6 +267,30 @@ export default function AdminPage() {
               </div>
             </fieldset>
           )}
+
+          {/* 2c · Random persona max similarity */}
+          <fieldset className="space-y-3">
+            <legend className="text-sm font-semibold text-gray-800">
+              Random persona max similarity
+            </legend>
+            <p className="text-xs text-gray-500">
+              Used for <strong>Personalized Random</strong>: only personas with similarity strictly below this value are eligible, then one is sampled uniformly at random.
+            </p>
+            <div className="flex items-center gap-4">
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={settings.random_persona_similarity_threshold}
+                onChange={(e) => setSettings({ ...settings, random_persona_similarity_threshold: parseFloat(e.target.value) })}
+                className="flex-1 accent-brand-dark"
+              />
+              <span className="text-sm font-mono text-gray-700 w-12 text-right">
+                {settings.random_persona_similarity_threshold.toFixed(2)}
+              </span>
+            </div>
+          </fieldset>
 
           {/* 3 · Persona bank */}
           <fieldset className="space-y-3">
@@ -290,14 +321,94 @@ export default function AdminPage() {
             </div>
           </fieldset>
 
-          {/* 4 · OpenAI model */}
+          {/* 3b · Recommendation mode */}
           <fieldset className="space-y-3">
             <legend className="text-sm font-semibold text-gray-800">
-              OpenAI model
+              Recommendation mode
             </legend>
             <p className="text-xs text-gray-500">
-              Model used for both the main chat and intent classification. Changes take effect for
-              the next request.
+              <strong>Follow list:</strong> inject the persona's follow list as context (current default).{" "}
+              <strong>SocialVec:</strong> rank entities by SocialVec similarity to the persona and inject the top matches (legacy behaviour).
+            </p>
+            <div className="flex gap-6">
+              {(options.allowed_recommendation_modes ?? ["follow_list", "socialvec"]).map((mode) => (
+                <label key={mode} className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="radio"
+                    name="recommendation_mode"
+                    checked={settings.recommendation_mode === mode}
+                    onChange={() => setSettings({ ...settings, recommendation_mode: mode })}
+                    className="w-4 h-4 accent-brand-dark"
+                  />
+                  <span className="text-sm text-gray-700 capitalize">{mode.replace("_", " ")}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          {/* 4 · Minimum chat length */}
+          <fieldset className="space-y-3">
+            <legend className="text-sm font-semibold text-gray-800">
+              Minimum number of messages
+            </legend>
+            <p className="text-xs text-gray-500">
+              Overrides MINIMAL_NUMBER_OF_MESSAGES for chat completion gating. Users must send at least this many visible chat messages before they can continue.
+            </p>
+            <input
+              type="number"
+              min={1}
+              step={1}
+              value={settings.minimal_number_of_messages}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  minimal_number_of_messages: Math.max(1, Number.parseInt(e.target.value || "1", 10)),
+                })
+              }
+              className="w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-dark"
+            />
+          </fieldset>
+
+          {/* 4b · Required tasks */}
+          <fieldset className="space-y-3">
+            <legend className="text-sm font-semibold text-gray-800">
+              Required tasks
+            </legend>
+            <p className="text-xs text-gray-500">
+              Select which tasks users must complete before proceeding to feedback. Disabled tasks are hidden from the user&apos;s checklist. At least one must remain enabled.
+            </p>
+            {[
+              { key: "friendly_chat", label: "Friendly Chat" },
+              { key: "recommendation", label: "Recommendation" },
+              { key: "second_recommendation", label: "Second Recommendation" },
+              { key: "stance_request", label: "Stance Request" },
+              { key: "factual_information", label: "Factual Information Request" },
+            ].map(({ key, label }) => {
+              const checked = settings.required_tasks?.[key] !== false;
+              return (
+                <label
+                  key={key}
+                  className="flex items-center gap-3 cursor-pointer select-none"
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => toggleRequiredTask(key)}
+                    className="w-4 h-4 accent-brand-dark"
+                  />
+                  <span className="text-sm text-gray-700">{label}</span>
+                </label>
+              );
+            })}
+          </fieldset>
+
+          {/* 5 · Chat engine */}
+          <fieldset className="space-y-3">
+            <legend className="text-sm font-semibold text-gray-800">
+              Chat engine
+            </legend>
+            <p className="text-xs text-gray-500">
+              Model used for the main chat. Changes take effect for the next request.
             </p>
             <select
               value={settings.openai_model}
@@ -310,7 +421,7 @@ export default function AdminPage() {
             </select>
           </fieldset>
 
-          {/* 5 · Debug mode */}
+          {/* 6 · Debug mode */}
           <fieldset className="space-y-3">
             <legend className="text-sm font-semibold text-gray-800">
               Debug mode

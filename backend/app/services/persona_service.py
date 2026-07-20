@@ -9,7 +9,11 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 from app.config import get_settings
 from app.dependencies import get_accounts, get_persona_details
-from app.runtime_settings import get_effective_similarity_with_friends, get_effective_similarity_threshold
+from app.runtime_settings import (
+    get_effective_random_persona_similarity_threshold,
+    get_effective_similarity_threshold,
+    get_effective_similarity_with_friends,
+)
 from app.services.session_service import SessionData
 
 
@@ -92,7 +96,8 @@ def _rank_personas(
         # First filter by similarity threshold.
         candidates = scored[scored["_similarity"] >= similarity_threshold]
         if candidates.empty:
-            candidates = scored
+            # No persona met the threshold: fall back to top-20 most similar.
+            candidates = scored.nlargest(20, "_similarity")
         # Then apply min_joint_categories filter within threshold-passing personas.
         if cat_to_accounts is not None:
             filtered = candidates[candidates["_joint_categories"] >= min_joint_categories]
@@ -170,6 +175,32 @@ def find_top_n_similar_personas(
     return results
 
 
+def _pick_random_persona_below_similarity_threshold(
+    session: SessionData,
+    similarity_threshold: float,
+) -> tuple[int, np.ndarray]:
+    """Pick a random persona whose similarity is below ``similarity_threshold``."""
+    persona_details = get_persona_details()
+    if session.user_mean_vector is None:
+        idx = random.randint(0, len(persona_details) - 1)
+        return idx, np.array([])
+
+    all_embeddings = np.stack(persona_details["sv"].values)
+    similarities = cosine_similarity(
+        all_embeddings,
+        session.user_mean_vector.reshape(1, -1),
+    ).flatten()
+    candidate_indices = np.where(similarities < similarity_threshold)[0]
+
+    if len(candidate_indices) == 0:
+        # Best-effort fallback: when no persona is below the threshold, use the
+        # least similar persona available.
+        idx = int(np.argmin(similarities))
+    else:
+        idx = int(random.choice(candidate_indices.tolist()))
+    return idx, similarities
+
+
 def select_persona_for_session(session: SessionData, persona_index: int | None = None) -> dict:
     """
     Select and assign a persona to the session based on chat_type.
@@ -203,11 +234,16 @@ def select_persona_for_session(session: SessionData, persona_index: int | None =
         }
 
     elif chat_type == "Personalized Random":
-        idx = random.randint(0, len(persona_details) - 1)
+        idx, similarities = _pick_random_persona_below_similarity_threshold(
+            session,
+            similarity_threshold=get_effective_random_persona_similarity_threshold(),
+        )
         persona = persona_details.iloc[idx]
         session.user_for_the_chat = persona["screen_name"]
         session.user_embeddings = np.array(persona["sv"])
-        if session.user_mean_vector is not None:
+        if similarities.size > 0:
+            session.selected_user_similarity = float(similarities[idx])
+        elif session.user_mean_vector is not None:
             session.selected_user_similarity = float(
                 cosine_similarity(
                     np.array(persona["sv"]).reshape(1, -1),

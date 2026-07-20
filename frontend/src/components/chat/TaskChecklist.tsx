@@ -8,9 +8,25 @@ interface TaskChecklistProps {
   tasks: TaskStatus;
   messageCount: number;
   minMessages: number;
+  requiredTasks?: Record<string, boolean>;
 }
 
-function InfoModal({ onClose }: { onClose: () => void }) {
+const ALL_TASK_ITEMS: { key: keyof TaskStatus; label: string; infoLabel: string }[] = [
+  { key: "friendly_chat", label: "Friendly chat", infoLabel: "Friendly Chat" },
+  { key: "recommendation", label: "Ask for recommendation", infoLabel: "Recommendation" },
+  { key: "second_recommendation", label: "Second recommendation", infoLabel: "Second Recommendation (ask twice)" },
+  { key: "stance_request", label: "Get the bot's stance", infoLabel: "Ask the Bot's Stance" },
+  { key: "factual_information", label: "Factual information", infoLabel: "Factual Information" },
+];
+
+function InfoModal({
+  onClose,
+  requiredTasks,
+}: {
+  onClose: () => void;
+  requiredTasks: Record<string, boolean>;
+}) {
+  const required = ALL_TASK_ITEMS.filter((t) => requiredTasks[t.key] !== false);
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
@@ -35,19 +51,26 @@ function InfoModal({ onClose }: { onClose: () => void }) {
           Your goal is to interact with it while covering all required task types:
         </p>
         <ol className="list-decimal list-inside space-y-1.5 text-gray-700">
-          <li>
-            <strong>Friendly Chat</strong> - Have a casual, friendly conversation with the bot.
-          </li>
-          <li>
-            <strong>Recommendation</strong> - Ask the bot to recommend something (e.g. a movie, book, or place).
-            <strong>You need to do this twice</strong>.
-          </li>
-          <li>
-            <strong>Ask the Bot&apos;s stance</strong> — Request the bot&apos;s position on a potentially controversial or political issue (such as political figures, gun control, or the pro-life vs. pro-choice debate).
-          </li>
-          <li>
-            <strong>Factual Information</strong> — Request a factual fact or piece of information.
-          </li>
+          {required.map((t) => (
+            <li key={t.key}>
+              <strong>{t.infoLabel}</strong>
+              {t.key === "second_recommendation" && (
+                <> — <strong>You need to do this twice</strong></>
+              )}
+              {t.key === "stance_request" && (
+                <> — Request the bot&apos;s position on a potentially controversial or political issue.</>
+              )}
+              {t.key === "factual_information" && (
+                <> — Request a factual fact or piece of information.</>
+              )}
+              {t.key === "friendly_chat" && (
+                <> — Have a casual, friendly conversation with the bot.</>
+              )}
+              {t.key === "recommendation" && (
+                <> — Ask the bot to recommend something (e.g. a movie, book, or place).</>
+              )}
+            </li>
+          ))}
         </ol>
         <div className="mt-4 text-sm bg-orange-50 text-orange-700 p-3 rounded-lg font-medium">
           📌 The chatbot is <strong>not</strong> up-to-date with current events.
@@ -64,17 +87,15 @@ export default function TaskChecklist({
   tasks,
   messageCount,
   minMessages,
+  requiredTasks = {},
 }: TaskChecklistProps) {
   const remaining = Math.max(0, minMessages - messageCount);
   const [showInfo, setShowInfo] = useState(false);
 
-  const items = [
-    { label: "Friendly chat", done: tasks.friendly_chat },
-    { label: "Ask for recommendation", done: tasks.recommendation },
-    { label: "Second recommendation", done: tasks.second_recommendation },
-    { label: "Get the bot's stance", done: tasks.stance_request },
-    { label: "Factual information", done: tasks.factual_information },
-  ];
+  // Only show tasks that are required (default to showing all if requiredTasks is empty)
+  const visibleItems = ALL_TASK_ITEMS.filter(
+    (t) => Object.keys(requiredTasks).length === 0 || requiredTasks[t.key] !== false
+  );
 
   return (
     <>
@@ -98,25 +119,38 @@ export default function TaskChecklist({
           </button>
         </div>
         <ul className="space-y-1.5">
-          {items.map(({ label, done }) => (
-            <li key={label} className="flex items-center gap-2 text-sm">
-              <span
-                className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${done
-                  ? "bg-green-100 text-green-600"
-                  : "bg-gray-100 text-gray-400"
-                  }`}
-              >
-                {done ? "✓" : "○"}
-              </span>
-              <span className={done ? "text-gray-700" : "text-gray-400"}>
-                {label}
-              </span>
-            </li>
-          ))}
+          {visibleItems.map(({ key, label }) => {
+            const done = tasks[key];
+            return (
+              <li key={key} className="flex items-center gap-2 text-sm">
+                <span
+                  className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${done
+                    ? "bg-green-100 text-green-600"
+                    : "bg-gray-100 text-gray-400"
+                    }`}
+                >
+                  {done ? "✓" : "○"}
+                </span>
+                <span className={done ? "text-gray-700" : "text-gray-400"}>
+                  {label}
+                </span>
+              </li>
+            );
+          })}
         </ul>
       </div>
 
-      {showInfo && <InfoModal onClose={() => setShowInfo(false)} />}
+      {showInfo && (
+        <InfoModal
+          onClose={() => setShowInfo(false)}
+          requiredTasks={
+            Object.keys(requiredTasks).length > 0
+              ? requiredTasks
+              : Object.fromEntries(ALL_TASK_ITEMS.map((t) => [t.key, true]))
+          }
+        />
+      )}
     </>
   );
 }
+

@@ -17,12 +17,13 @@ _sv: SocialVec | None = None
 _categories: list[str] = []
 _accounts: pd.DataFrame = pd.DataFrame()
 _persona_details: pd.DataFrame = pd.DataFrame()
+_loaded_persona_bank: str | None = None
 _lm_cache: dict[str, Any] = {}  # keyed by model name
 
 
 async def startup() -> None:
     """Load heavy resources once at application startup."""
-    global _sv, _categories, _accounts, _lm_cache, _persona_details
+    global _sv, _categories, _accounts, _lm_cache, _persona_details, _loaded_persona_bank
 
     settings = get_settings()
     data_dir = settings.data_dir
@@ -51,9 +52,11 @@ async def startup() -> None:
     df_dbpedia = pd.read_csv(f"{data_dir}/dbpedia_types.csv")
     _sv.entities = pd.merge(_sv.entities, df_dbpedia, on="screen_name", how="left")
 
-    # Persona details
-    _persona_details = pd.read_pickle(f"{data_dir}/persona_details_v3.pkl")
+    # Persona details (respect runtime default/override instead of hardcoding v3)
+    bank = _rs.get_effective_persona_bank()
+    _persona_details = pd.read_pickle(f"{data_dir}/persona_details_{bank}.pkl")
     _persona_details.drop_duplicates(subset="screen_name", inplace=True)
+    _loaded_persona_bank = bank
 
     # Unwrap sv if stored as (array, count) tuples (new pickle format)
     if len(_persona_details) > 0 and isinstance(_persona_details["sv"].iloc[0], tuple):
@@ -61,6 +64,8 @@ async def startup() -> None:
 
     # DSPy LLM – prime the cache with the startup model
     default_model = _rs.get_effective_openai_model()
+    if default_model == "gemma4":
+        default_model = settings.openai_model
     _lm_cache[default_model] = dspy.LM(
         f"openai/{default_model}", api_key=settings.openai_api_key
     )
@@ -82,8 +87,25 @@ def get_accounts() -> pd.DataFrame:
 def get_lm() -> Any:
     """Return the DSPy LM for the currently effective model, creating it if needed."""
     model = _rs.get_effective_openai_model()
+    if model == "gemma4":
+        # Intent classification currently relies on DSPy OpenAI wiring.
+        # Keep it stable even when the chat engine is switched to Gemma.
+        model = get_settings().openai_model
     if model not in _lm_cache:
         settings = get_settings()
+        _lm_cache[model] = dspy.LM(f"openai/{model}", api_key=settings.openai_api_key)
+    return _lm_cache[model]
+
+
+def get_intent_lm() -> Any:
+    """Return the DSPy LM used for intent classification.
+
+    Intent classification always uses gpt-4o regardless of the model selected
+    in the admin page for the main conversation.
+    """
+    settings = get_settings()
+    model = "gpt-4o"
+    if model not in _lm_cache:
         _lm_cache[model] = dspy.LM(f"openai/{model}", api_key=settings.openai_api_key)
     return _lm_cache[model]
 
@@ -92,9 +114,14 @@ def get_persona_details() -> pd.DataFrame:
     return _persona_details.copy()
 
 
+def get_loaded_persona_bank() -> str | None:
+    """Return the persona bank currently loaded in memory."""
+    return _loaded_persona_bank
+
+
 def reload_persona_details(bank: str) -> None:
     """Hot-swap the in-memory persona details DataFrame when the admin changes the bank."""
-    global _persona_details
+    global _persona_details, _loaded_persona_bank
     from app.config import get_settings
     settings = get_settings()
     pkl_path = f"{settings.data_dir}/persona_details_{bank}.pkl"
@@ -103,3 +130,4 @@ def reload_persona_details(bank: str) -> None:
     if len(df) > 0 and isinstance(df["sv"].iloc[0], tuple):
         df["sv"] = df["sv"].apply(lambda x: x[0])
     _persona_details = df
+    _loaded_persona_bank = bank

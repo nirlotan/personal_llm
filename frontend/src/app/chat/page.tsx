@@ -254,6 +254,7 @@ export default function ChatPage() {
               tasks={chat.status.tasks}
               messageCount={chat.status.message_count}
               minMessages={MIN_MESSAGES}
+              requiredTasks={chat.status.required_tasks}
             />
           )}
 

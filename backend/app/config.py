@@ -28,14 +28,18 @@ class Settings(BaseSettings):
     max_interests_mobile: int = 2
 
     # --- Selection limits ---
-    min_categories: int = 4
+    min_categories: int = 3
     max_categories: int = 5
     min_accounts_per_category: int = 3
     max_accounts_per_category: int = 5
 
     # --- OpenAI ---
     openai_api_key: str = ""
-    openai_model: str = "gpt-5.4-mini"
+    openai_model: str = "gpt-5.2"
+
+    # --- Google AI Studio (Gemma) ---
+    google_ai_studio_api_key: str = "PASTE_GOOGLE_AI_STUDIO_API_KEY_HERE"
+    gemma_model: str = "gemma-4-26b-a4b-it"
 
     # --- Admin ---
     admin_password: str = "admin"
@@ -46,7 +50,7 @@ class Settings(BaseSettings):
     experiment_feedback_path: str = "/survey_results"
 
     # --- Chat types ---
-    types_of_chat_list: list[str] = ["vanilla", "Personalized Like Me"]
+    types_of_chat_list: list[str] = ["Personalized Like Me", "Personalized Random"]
 
     # --- Prolific ---
     prolific_approval: str = ""
@@ -61,7 +65,8 @@ class Settings(BaseSettings):
     # "combined" = filter by similarity threshold, then rank by joint categories/accounts
     similarity_with_friends: str = "disabled"
     min_joint_categories: int = 3
-    similarity_threshold: float = 0.3
+    similarity_threshold: float = 0.92
+    random_persona_similarity_threshold: float = 0.7
 
     # --- Data paths (relative to backend/) ---
     data_dir: str = "app/data"

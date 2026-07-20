@@ -141,9 +141,13 @@ export interface AdminSettings {
   types_of_chat_list: string[];
   similarity_with_friends: string;
   similarity_threshold: number;
+  random_persona_similarity_threshold: number;
+  minimal_number_of_messages: number;
   openai_model: string;
   debug: boolean;
   persona_bank: string;
+  recommendation_mode: string;
+  required_tasks: Record<string, boolean>;
 }
 
 export interface AdminOptions {
@@ -151,6 +155,7 @@ export interface AdminOptions {
   allowed_models: string[];
   allowed_similarity_modes: string[];
   allowed_persona_banks: string[];
+  allowed_recommendation_modes: string[];
 }
 
 function putJson<T>(path: string, body: unknown, token: string): Promise<T> {

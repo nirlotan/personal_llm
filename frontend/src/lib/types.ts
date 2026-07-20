@@ -33,6 +33,7 @@ export interface ChatStatusResponse {
   message_count: number;
   tasks: TaskStatus;
   can_proceed: boolean;
+  required_tasks: Record<string, boolean>;
 }
 
 export interface SurveyQuestion {

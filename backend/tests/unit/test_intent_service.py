@@ -92,3 +92,23 @@ def test_classify_intent_falls_back_to_other_on_provider_error():
         result = classify_intent("hello")
 
     assert result == {"intent": "Other", "topic": None}
+
+
+def test_classify_intent_uses_openai_intent_lm():
+    """Intent classification should always use the OpenAI intent LM accessor."""
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock, patch
+
+    from app.services.intent_service import classify_intent
+
+    fake_lm = object()
+    fake_predictor = MagicMock(return_value=SimpleNamespace(intent=SimpleNamespace(value="Friendly Chat"), topic=None))
+
+    with patch("app.services.intent_service.get_intent_lm", return_value=fake_lm) as mock_get_intent_lm:
+        with patch("app.services.intent_service.dspy.context") as mock_context:
+            with patch("app.services.intent_service.dspy.Predict", return_value=fake_predictor):
+                result = classify_intent("hello")
+
+    mock_get_intent_lm.assert_called_once()
+    mock_context.assert_called_once_with(lm=fake_lm)
+    assert result == {"intent": "Friendly Chat", "topic": None}

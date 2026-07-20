@@ -18,16 +18,24 @@ def reset_runtime_overrides():
     rs._overrides.types_of_chat_list = None
     rs._overrides.similarity_with_friends = None
     rs._overrides.similarity_threshold = None
+    rs._overrides.random_persona_similarity_threshold = None
+    rs._overrides.minimal_number_of_messages = None
     rs._overrides.openai_model = None
     rs._overrides.debug = None
     rs._overrides.persona_bank = None
+    rs._overrides.recommendation_mode = None
+    rs._overrides.required_tasks = None
     yield
     rs._overrides.types_of_chat_list = None
     rs._overrides.similarity_with_friends = None
     rs._overrides.similarity_threshold = None
+    rs._overrides.random_persona_similarity_threshold = None
+    rs._overrides.minimal_number_of_messages = None
     rs._overrides.openai_model = None
     rs._overrides.debug = None
     rs._overrides.persona_bank = None
+    rs._overrides.recommendation_mode = None
+    rs._overrides.required_tasks = None
 
 
 async def _login(client) -> dict[str, str]:
@@ -71,6 +79,7 @@ async def test_get_options_returns_allowed_lists(client):
     assert "allowed_similarity_modes" in data
     assert "allowed_persona_banks" in data
     assert set(data["allowed_persona_banks"]) == {"v3", "v2"}
+    assert "gemma4" in data["allowed_models"]
 
 
 # ── GET /settings ─────────────────────────────────────────────────────────────
@@ -82,8 +91,8 @@ async def test_get_settings_returns_persona_bank_field(client):
     assert resp.status_code == 200
     data = resp.json()
     assert "persona_bank" in data
-    # Default bank is v3
-    assert data["persona_bank"] == "v3"
+    # Default bank is v2
+    assert data["persona_bank"] == "v2"
 
 
 async def test_get_settings_returns_all_fields(client):
@@ -95,9 +104,13 @@ async def test_get_settings_returns_all_fields(client):
         "types_of_chat_list",
         "similarity_with_friends",
         "similarity_threshold",
+        "random_persona_similarity_threshold",
+        "minimal_number_of_messages",
         "openai_model",
         "debug",
         "persona_bank",
+        "recommendation_mode",
+        "required_tasks",
     }
     assert expected_fields == set(data.keys())
 
@@ -111,6 +124,7 @@ async def test_toggle_chat_types(client):
         "types_of_chat_list": ["vanilla"],
         "similarity_with_friends": "disabled",
         "similarity_threshold": 0.5,
+        "minimal_number_of_messages": 8,
         "openai_model": "gpt-5.4-mini",
         "debug": False,
         "persona_bank": "v3",
@@ -128,6 +142,7 @@ async def test_toggle_chat_types_multiple(client):
         "types_of_chat_list": ["vanilla", "Personalized Like Me", "Personalized Random"],
         "similarity_with_friends": "disabled",
         "similarity_threshold": 0.5,
+        "minimal_number_of_messages": 8,
         "openai_model": "gpt-5.4-mini",
         "debug": False,
         "persona_bank": "v3",
@@ -145,6 +160,7 @@ async def test_invalid_chat_type_rejected(client):
         "types_of_chat_list": ["not_a_real_type"],
         "similarity_with_friends": "disabled",
         "similarity_threshold": 0.5,
+        "minimal_number_of_messages": 8,
         "openai_model": "gpt-5.4-mini",
         "debug": False,
         "persona_bank": "v3",
@@ -159,10 +175,43 @@ async def test_empty_chat_types_rejected(client):
         "types_of_chat_list": [],
         "similarity_with_friends": "disabled",
         "similarity_threshold": 0.5,
+        "minimal_number_of_messages": 8,
         "openai_model": "gpt-5.4-mini",
         "debug": False,
         "persona_bank": "v3",
     }
+
+
+async def test_toggle_minimal_number_of_messages(client):
+    headers = await _login(client)
+    payload = {
+        "types_of_chat_list": ["vanilla"],
+        "similarity_with_friends": "disabled",
+        "similarity_threshold": 0.5,
+        "minimal_number_of_messages": 12,
+        "openai_model": "gpt-5.4-mini",
+        "debug": False,
+        "persona_bank": "v3",
+    }
+    resp = await client.put("/api/admin/settings", json=payload, headers=headers)
+    assert resp.status_code == 200
+    assert resp.json()["minimal_number_of_messages"] == 12
+    assert rs.get_effective_minimal_number_of_messages() == 12
+
+
+async def test_invalid_minimal_number_of_messages_rejected(client):
+    headers = await _login(client)
+    payload = {
+        "types_of_chat_list": ["vanilla"],
+        "similarity_with_friends": "disabled",
+        "similarity_threshold": 0.5,
+        "minimal_number_of_messages": 0,
+        "openai_model": "gpt-5.4-mini",
+        "debug": False,
+        "persona_bank": "v3",
+    }
+    resp = await client.put("/api/admin/settings", json=payload, headers=headers)
+    assert resp.status_code == 422
     resp = await client.put("/api/admin/settings", json=payload, headers=headers)
     assert resp.status_code == 422
 
@@ -176,6 +225,7 @@ async def test_toggle_openai_model(client):
         "types_of_chat_list": ["vanilla"],
         "similarity_with_friends": "disabled",
         "similarity_threshold": 0.5,
+        "minimal_number_of_messages": 8,
         "openai_model": "gpt-4o",
         "debug": False,
         "persona_bank": "v3",
@@ -192,12 +242,30 @@ async def test_invalid_openai_model_rejected(client):
         "types_of_chat_list": ["vanilla"],
         "similarity_with_friends": "disabled",
         "similarity_threshold": 0.5,
+        "minimal_number_of_messages": 8,
         "openai_model": "gpt-99-ultra",
         "debug": False,
         "persona_bank": "v3",
     }
     resp = await client.put("/api/admin/settings", json=payload, headers=headers)
     assert resp.status_code == 422
+
+
+async def test_toggle_gemma4_model(client):
+    headers = await _login(client)
+    payload = {
+        "types_of_chat_list": ["vanilla"],
+        "similarity_with_friends": "disabled",
+        "similarity_threshold": 0.5,
+        "minimal_number_of_messages": 8,
+        "openai_model": "gemma4",
+        "debug": False,
+        "persona_bank": "v3",
+    }
+    resp = await client.put("/api/admin/settings", json=payload, headers=headers)
+    assert resp.status_code == 200
+    assert resp.json()["openai_model"] == "gemma4"
+    assert rs.get_effective_openai_model() == "gemma4"
 
 
 # ── PUT /settings – similarity mode ──────────────────────────────────────────
@@ -209,6 +277,7 @@ async def test_toggle_similarity_mode(client):
         "types_of_chat_list": ["vanilla"],
         "similarity_with_friends": "friends",
         "similarity_threshold": 0.7,
+        "minimal_number_of_messages": 8,
         "openai_model": "gpt-5.4-mini",
         "debug": False,
         "persona_bank": "v3",
@@ -225,6 +294,7 @@ async def test_invalid_similarity_mode_rejected(client):
         "types_of_chat_list": ["vanilla"],
         "similarity_with_friends": "magic",
         "similarity_threshold": 0.5,
+        "minimal_number_of_messages": 8,
         "openai_model": "gpt-5.4-mini",
         "debug": False,
         "persona_bank": "v3",
@@ -242,6 +312,7 @@ async def test_toggle_debug_on(client):
         "types_of_chat_list": ["vanilla"],
         "similarity_with_friends": "disabled",
         "similarity_threshold": 0.5,
+        "minimal_number_of_messages": 8,
         "openai_model": "gpt-5.4-mini",
         "debug": True,
         "persona_bank": "v3",
@@ -260,6 +331,7 @@ async def test_toggle_debug_off(client):
             "types_of_chat_list": ["vanilla"],
             "similarity_with_friends": "disabled",
             "similarity_threshold": 0.5,
+            "minimal_number_of_messages": 8,
             "openai_model": "gpt-5.4-mini",
             "debug": debug_value,
             "persona_bank": "v3",
@@ -279,6 +351,7 @@ async def test_toggle_persona_bank_to_v2(client):
         "types_of_chat_list": ["vanilla"],
         "similarity_with_friends": "disabled",
         "similarity_threshold": 0.5,
+        "minimal_number_of_messages": 8,
         "openai_model": "gpt-5.4-mini",
         "debug": False,
         "persona_bank": "v2",
@@ -299,6 +372,7 @@ async def test_same_persona_bank_does_not_reload(client):
         "types_of_chat_list": ["vanilla"],
         "similarity_with_friends": "disabled",
         "similarity_threshold": 0.5,
+        "minimal_number_of_messages": 8,
         "openai_model": "gpt-5.4-mini",
         "debug": False,
         "persona_bank": "v3",
@@ -319,6 +393,7 @@ async def test_toggle_persona_bank_back_to_v3(client):
         "types_of_chat_list": ["vanilla"],
         "similarity_with_friends": "disabled",
         "similarity_threshold": 0.5,
+        "minimal_number_of_messages": 8,
         "openai_model": "gpt-5.4-mini",
         "debug": False,
         "persona_bank": "v3",
@@ -336,6 +411,7 @@ async def test_invalid_persona_bank_rejected(client):
         "types_of_chat_list": ["vanilla"],
         "similarity_with_friends": "disabled",
         "similarity_threshold": 0.5,
+        "minimal_number_of_messages": 8,
         "openai_model": "gpt-5.4-mini",
         "debug": False,
         "persona_bank": "v99",
@@ -351,6 +427,7 @@ async def test_missing_persona_bank_file_returns_422(client):
         "types_of_chat_list": ["vanilla"],
         "similarity_with_friends": "disabled",
         "similarity_threshold": 0.5,
+        "minimal_number_of_messages": 8,
         "openai_model": "gpt-5.4-mini",
         "debug": False,
         "persona_bank": "v2",
@@ -379,6 +456,7 @@ async def test_settings_persist_until_reset(client):
                 "types_of_chat_list": ["PERSONA_ref"],
                 "similarity_with_friends": "combined",
                 "similarity_threshold": 0.8,
+                "minimal_number_of_messages": 11,
                 "openai_model": "gpt-4o",
                 "debug": True,
                 "persona_bank": "v2",
@@ -392,6 +470,7 @@ async def test_settings_persist_until_reset(client):
     assert data["types_of_chat_list"] == ["PERSONA_ref"]
     assert data["similarity_with_friends"] == "combined"
     assert data["similarity_threshold"] == 0.8
+    assert data["minimal_number_of_messages"] == 11
     assert data["openai_model"] == "gpt-4o"
     assert data["debug"] is True
     assert data["persona_bank"] == "v2"
