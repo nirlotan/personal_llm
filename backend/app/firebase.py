@@ -2,11 +2,35 @@
 from __future__ import annotations
 
 import json
+import os
+from contextlib import contextmanager
 
 import firebase_admin
 from firebase_admin import credentials, db
 
 from app.config import get_settings
+
+
+_PROXY_ENV_VARS = (
+    "HTTP_PROXY",
+    "HTTPS_PROXY",
+    "ALL_PROXY",
+    "http_proxy",
+    "https_proxy",
+    "all_proxy",
+)
+
+
+@contextmanager
+def firebase_proxyless_env():
+    """Temporarily clear proxy env vars for Firebase network calls."""
+    previous_values = {name: os.environ.pop(name, None) for name in _PROXY_ENV_VARS}
+    try:
+        yield
+    finally:
+        for name, value in previous_values.items():
+            if value is not None:
+                os.environ[name] = value
 
 
 def get_firebase_app() -> firebase_admin.App:
@@ -19,8 +43,9 @@ def get_firebase_app() -> firebase_admin.App:
     # TOML / env-var storage often preserves literal \n instead of real newlines in the PEM key.
     if "private_key" in cert:
         cert["private_key"] = cert["private_key"].replace("\\n", "\n")
-    cred = credentials.Certificate(cert)
-    return firebase_admin.initialize_app(cred, {"databaseURL": settings.firebase_db_url})
+    with firebase_proxyless_env():
+        cred = credentials.Certificate(cert)
+        return firebase_admin.initialize_app(cred, {"databaseURL": settings.firebase_db_url})
 
 
 def get_feedback_ref(path_override: str | None = None) -> db.Reference:

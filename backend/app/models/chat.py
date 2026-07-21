@@ -43,4 +43,5 @@ class ChatStatusResponse(BaseModel):
     message_count: int
     tasks: TaskStatus
     can_proceed: bool
+    min_messages: int
     required_tasks: dict[str, bool]

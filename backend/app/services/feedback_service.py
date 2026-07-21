@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from app.firebase import get_feedback_ref
+from app.firebase import firebase_proxyless_env, get_feedback_ref
 from app.services.session_service import SessionData
 
 
@@ -75,7 +75,8 @@ def submit_feedback(
         "free_text_feedback": free_text,
     }
 
-    ref.push(payload)
+    with firebase_proxyless_env():
+        ref.push(payload)
     session.number_of_feedbacks_provided += 1
 
     return payload

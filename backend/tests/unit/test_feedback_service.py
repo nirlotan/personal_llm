@@ -1,7 +1,10 @@
 # Unit tests for feedback_service (attention check logic).
 from __future__ import annotations
 
-from app.services.feedback_service import check_attention, load_survey_questions
+import os
+
+from app.services.feedback_service import check_attention, load_survey_questions, submit_feedback
+from app.services.session_service import SessionData
 
 
 def test_attention_check_passes():
@@ -27,3 +30,31 @@ def test_load_survey_questions():
     # Verify attention question exists
     labels = [q["short_label"] for q in questions]
     assert "Attention" in labels
+
+
+def test_submit_feedback_pushes_without_proxy_env(monkeypatch):
+    session = SessionData(session_id="session-1")
+    session.chat_type = "Personalized Like Me"
+    session.augmented_chat_messages = [{"role": "user", "content": "hello"}]
+
+    observed = {}
+
+    class FakeRef:
+        def push(self, payload):
+            observed["payload"] = payload
+            observed["http_proxy"] = os.environ.get("HTTP_PROXY")
+            observed["https_proxy"] = os.environ.get("HTTPS_PROXY")
+
+    monkeypatch.setenv("HTTP_PROXY", "http://example-proxy")
+    monkeypatch.setenv("HTTPS_PROXY", "http://example-proxy")
+    monkeypatch.setattr(
+        "app.services.feedback_service.get_feedback_ref",
+        lambda path_override=None: FakeRef(),
+    )
+
+    payload = submit_feedback(session, {"Attention": 3}, "free text")
+
+    assert payload == observed["payload"]
+    assert observed["http_proxy"] is None
+    assert observed["https_proxy"] is None
+    assert session.number_of_feedbacks_provided == 1

@@ -33,6 +33,7 @@ export interface ChatStatusResponse {
   message_count: number;
   tasks: TaskStatus;
   can_proceed: boolean;
+  min_messages: number;
   required_tasks: Record<string, boolean>;
 }
 

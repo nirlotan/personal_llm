@@ -10,7 +10,7 @@ import Dialog from "@/components/ui/Dialog";
 import { useSession } from "@/hooks/useSession";
 import { useChat } from "@/hooks/useChat";
 import { getChatMessages, getSessionInfo, getDebugStatus } from "@/lib/api";
-import { MIN_MESSAGES, API_URL } from "@/lib/constants";
+import { API_URL } from "@/lib/constants";
 
 export default function ChatPage() {
   const router = useRouter();
@@ -46,6 +46,11 @@ export default function ChatPage() {
   const [showPersonaPreviewDialog, setShowPersonaPreviewDialog] = useState(false);
   const [personaPreview, setPersonaPreview] = useState<PersonaPreview | null>(null);
   const [personaPreviewLoading, setPersonaPreviewLoading] = useState<number | null>(null);
+
+  const requiredTaskCount = chat.status
+    ? Object.values(chat.status.required_tasks).filter((enabled) => enabled !== false).length
+    : 0;
+  const minMessages = chat.status?.min_messages ?? 0;
 
   // Redirect if no session (wait until localStorage is read first)
   useEffect(() => {
@@ -201,7 +206,7 @@ export default function ChatPage() {
           Chat with the Language Model
         </h1>
         <p className="text-gray-600 text-sm">
-          Complete all 5 task types and send at least {MIN_MESSAGES} messages to proceed.
+          Complete all {requiredTaskCount || 5} task types and send at least {minMessages || 8} messages to proceed.
         </p>
       </header>
 
@@ -253,7 +258,7 @@ export default function ChatPage() {
             <TaskChecklist
               tasks={chat.status.tasks}
               messageCount={chat.status.message_count}
-              minMessages={MIN_MESSAGES}
+              minMessages={chat.status.min_messages}
               requiredTasks={chat.status.required_tasks}
             />
           )}
@@ -278,7 +283,7 @@ export default function ChatPage() {
           )}
 
           {chat.status &&
-            chat.status.message_count >= MIN_MESSAGES &&
+            chat.status.message_count >= chat.status.min_messages &&
             !chat.status.can_proceed && (
               <div className="mt-4 text-sm text-orange-600 bg-orange-50 p-3 rounded-xl">
                 ⚠️ Complete all tasks before proceeding.

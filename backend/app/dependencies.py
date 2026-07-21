@@ -21,6 +21,24 @@ _loaded_persona_bank: str | None = None
 _lm_cache: dict[str, Any] = {}  # keyed by model name
 
 
+def _normalize_persona_details(df: pd.DataFrame) -> pd.DataFrame:
+    """Normalize persona-bank schema so downstream services can rely on optional fields."""
+    normalized = df.copy()
+    normalized.drop_duplicates(subset="screen_name", inplace=True)
+
+    if len(normalized) > 0 and isinstance(normalized["sv"].iloc[0], tuple):
+        normalized["sv"] = normalized["sv"].apply(lambda x: x[0])
+
+    if "follows_list" not in normalized.columns:
+        normalized["follows_list"] = [[] for _ in range(len(normalized))]
+    else:
+        normalized["follows_list"] = normalized["follows_list"].apply(
+            lambda value: value if isinstance(value, list) else []
+        )
+
+    return normalized
+
+
 async def startup() -> None:
     """Load heavy resources once at application startup."""
     global _sv, _categories, _accounts, _lm_cache, _persona_details, _loaded_persona_bank
@@ -54,13 +72,10 @@ async def startup() -> None:
 
     # Persona details (respect runtime default/override instead of hardcoding v3)
     bank = _rs.get_effective_persona_bank()
-    _persona_details = pd.read_pickle(f"{data_dir}/persona_details_{bank}.pkl")
-    _persona_details.drop_duplicates(subset="screen_name", inplace=True)
+    _persona_details = _normalize_persona_details(
+        pd.read_pickle(f"{data_dir}/persona_details_{bank}.pkl")
+    )
     _loaded_persona_bank = bank
-
-    # Unwrap sv if stored as (array, count) tuples (new pickle format)
-    if len(_persona_details) > 0 and isinstance(_persona_details["sv"].iloc[0], tuple):
-        _persona_details["sv"] = _persona_details["sv"].apply(lambda x: x[0])
 
     # DSPy LLM – prime the cache with the startup model
     default_model = _rs.get_effective_openai_model()
@@ -125,9 +140,5 @@ def reload_persona_details(bank: str) -> None:
     from app.config import get_settings
     settings = get_settings()
     pkl_path = f"{settings.data_dir}/persona_details_{bank}.pkl"
-    df = pd.read_pickle(pkl_path)
-    df.drop_duplicates(subset="screen_name", inplace=True)
-    if len(df) > 0 and isinstance(df["sv"].iloc[0], tuple):
-        df["sv"] = df["sv"].apply(lambda x: x[0])
-    _persona_details = df
+    _persona_details = _normalize_persona_details(pd.read_pickle(pkl_path))
     _loaded_persona_bank = bank

@@ -122,6 +122,7 @@ async def get_chat_status(session_id: str):
             factual_information=bool(session.chat_status.get("Factual Information Request")),
         ),
         can_proceed=can_proceed,
+        min_messages=get_effective_minimal_number_of_messages(),
         required_tasks=get_effective_required_tasks(),
     )
 

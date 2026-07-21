@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from app.dependencies import _normalize_persona_details
 from app.services.persona_service import pick_random_chat_type, select_persona_for_session
 from app.services.session_service import SessionData
 
@@ -85,3 +86,40 @@ def test_personalized_random_falls_back_to_least_similar_when_no_persona_is_belo
 
     assert persona["screen_name"] == "less_same"
     assert session.selected_user_similarity == pytest.approx(0.8)
+
+
+def test_personalized_like_me_supports_persona_bank_without_follows_list():
+    session = SessionData(session_id="test-like-me-v2-schema")
+    session.chat_type = "Personalized Like Me"
+    session.user_mean_vector = np.array([1.0, 0.0], dtype=float)
+    session.selected_accounts = ["account_a"]
+
+    personas = _normalize_persona_details(
+        pd.DataFrame(
+            {
+                "screen_name": ["closest_match", "farther_match"],
+                "description": ["", ""],
+                "sv": [
+                    np.array([1.0, 0.0], dtype=float),
+                    np.array([0.0, 1.0], dtype=float),
+                ],
+            }
+        )
+    )
+    accounts = pd.DataFrame(
+        {
+            "twitter_name": ["account_a"],
+            "category": ["news"],
+        }
+    )
+
+    with (
+        patch("app.services.persona_service.get_persona_details", return_value=personas),
+        patch("app.services.persona_service.get_accounts", return_value=accounts),
+        patch("app.services.persona_service.get_effective_similarity_with_friends", return_value="friends"),
+        patch("app.services.persona_service.get_effective_similarity_threshold", return_value=0.3),
+    ):
+        persona = select_persona_for_session(session)
+
+    assert persona["screen_name"] == "closest_match"
+    assert session.selected_user_follow_list == []
