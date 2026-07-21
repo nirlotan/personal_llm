@@ -28,6 +28,7 @@ export function useChat(sessionId: string | undefined) {
   const initChat = useCallback(async () => {
     if (!sessionId) return;
     setLoading(true);
+    setError(null);
     try {
       const [msgRes, st] = await Promise.all([
         getChatMessages(sessionId),
@@ -36,7 +37,10 @@ export function useChat(sessionId: string | undefined) {
       setMessages(msgRes.messages as ChatMessage[]);
       setStatus(st);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Failed to load chat");
+      const msg = e instanceof Error ? e.message : "Failed to load chat";
+      console.error("[chat:init] failed", { sessionId, error: e });
+      setError(msg);
+      throw new Error(msg);
     } finally {
       setLoading(false);
     }
@@ -46,6 +50,7 @@ export function useChat(sessionId: string | undefined) {
     async (personaIndex?: number): Promise<ChatPrepareResponse | null> => {
       if (!sessionId) return null;
       setLoading(true);
+      setError(null);
       try {
         const res = await prepareChat(sessionId, personaIndex);
         setChatType(res.chat_type);
@@ -62,8 +67,10 @@ export function useChat(sessionId: string | undefined) {
 
         return res;
       } catch (e: unknown) {
-        setError(e instanceof Error ? e.message : "Failed to prepare chat");
-        return null;
+        const msg = e instanceof Error ? e.message : "Failed to prepare chat";
+        console.error("[chat:prepare] failed", { sessionId, personaIndex, error: e });
+        setError(msg);
+        throw new Error(msg);
       } finally {
         setLoading(false);
       }
@@ -90,6 +97,7 @@ export function useChat(sessionId: string | undefined) {
 
         return res;
       } catch (e: unknown) {
+        console.error("[chat:send] failed", { sessionId, content, error: e });
         setError(e instanceof Error ? e.message : "Failed to send message");
         return null;
       } finally {

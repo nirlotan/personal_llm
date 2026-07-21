@@ -13,18 +13,52 @@ import type {
 
 import { API_URL } from "./constants";
 
+const API_TIMEOUT_MS = 30000;
+
+function getRequestId(res: Response): string | null {
+  return res.headers.get("x-request-id");
+}
+
 // ── Helpers ────────────────────────────────────────────────────────────────
+
+async function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+
+  try {
+    return await fetch(input, {
+      ...init,
+      signal: controller.signal,
+    });
+  } catch (error: unknown) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error(`API timeout after ${API_TIMEOUT_MS / 1000}s`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
 
 async function json<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`API ${res.status}: ${text}`);
+    const requestId = getRequestId(res);
+    const requestInfo = requestId ? ` (request_id=${requestId})` : "";
+    const message = `API ${res.status}${requestInfo}: ${text}`;
+    console.error("API request failed", {
+      status: res.status,
+      requestId,
+      body: text,
+      url: res.url,
+    });
+    throw new Error(message);
   }
   return res.json() as Promise<T>;
 }
 
 function post<T>(path: string, body?: unknown): Promise<T> {
-  return fetch(`${API_URL}${path}`, {
+  return fetchWithTimeout(`${API_URL}${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: body ? JSON.stringify(body) : undefined,
@@ -32,7 +66,7 @@ function post<T>(path: string, body?: unknown): Promise<T> {
 }
 
 function get<T>(path: string): Promise<T> {
-  return fetch(`${API_URL}${path}`).then((r) => json<T>(r));
+  return fetchWithTimeout(`${API_URL}${path}`).then((r) => json<T>(r));
 }
 
 // ── Session ────────────────────────────────────────────────────────────────
@@ -159,7 +193,7 @@ export interface AdminOptions {
 }
 
 function putJson<T>(path: string, body: unknown, token: string): Promise<T> {
-  return fetch(`${API_URL}${path}`, {
+  return fetchWithTimeout(`${API_URL}${path}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify(body),
@@ -167,7 +201,7 @@ function putJson<T>(path: string, body: unknown, token: string): Promise<T> {
 }
 
 function getAuth<T>(path: string, token: string): Promise<T> {
-  return fetch(`${API_URL}${path}`, {
+  return fetchWithTimeout(`${API_URL}${path}`, {
     headers: { Authorization: `Bearer ${token}` },
   }).then((r) => json<T>(r));
 }

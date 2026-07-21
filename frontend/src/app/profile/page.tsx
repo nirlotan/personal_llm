@@ -18,6 +18,7 @@ export default function ProfilePage() {
   const profile = useProfile(session?.session_id);
 
   const [showCategoryDialog, setShowCategoryDialog] = useState(true);
+  const [profileErrorAt, setProfileErrorAt] = useState<string | null>(null);
 
   // Redirect if no session (wait until localStorage is read first)
   useEffect(() => {
@@ -31,6 +32,16 @@ export default function ProfilePage() {
     profile.loadCategories();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (profile.error) {
+      setProfileErrorAt(new Date().toISOString());
+      console.error("[profile] operation failed", {
+        sessionId: session?.session_id,
+        error: profile.error,
+      });
+    }
+  }, [profile.error, session?.session_id]);
 
   // Load accounts when entering account-selection phase
   useEffect(() => {
@@ -49,7 +60,11 @@ export default function ProfilePage() {
       try {
         await profile.submitUserProfile();
         router.push("/chat");
-      } catch {
+      } catch (e) {
+        console.error("[profile:submit] failed", {
+          sessionId: session?.session_id,
+          error: e,
+        });
         // Error is set in profile.error by the hook
       }
     } else {
@@ -99,6 +114,14 @@ export default function ProfilePage() {
             </>
           )}
         </div>
+        {profile.error && (
+          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-left">
+            <p className="text-sm text-red-700 break-all">{profile.error}</p>
+            <p className="mt-1 text-xs text-red-800/90 font-mono break-all">
+              session_id: {session?.session_id ?? "n/a"} | time_utc: {profileErrorAt ?? "n/a"}
+            </p>
+          </div>
+        )}
       </header>
 
       {/* Category dialog */}

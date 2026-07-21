@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 import logging
+import time
+import uuid
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
@@ -85,6 +87,37 @@ def create_app() -> FastAPI:
     app.include_router(feedback.router, prefix="/api", tags=["feedback"])
     app.include_router(debug.router, prefix="/api/debug", tags=["debug"])
     app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
+
+    @app.middleware("http")
+    async def request_logging_middleware(request: Request, call_next):
+        request_id = request.headers.get("x-request-id") or str(uuid.uuid4())
+        started = time.perf_counter()
+
+        try:
+            response = await call_next(request)
+        except Exception:
+            elapsed_ms = round((time.perf_counter() - started) * 1000, 2)
+            logger.exception(
+                "request_failed request_id=%s method=%s path=%s client=%s duration_ms=%s",
+                request_id,
+                request.method,
+                request.url.path,
+                request.client.host if request.client else "unknown",
+                elapsed_ms,
+            )
+            raise
+
+        elapsed_ms = round((time.perf_counter() - started) * 1000, 2)
+        logger.info(
+            "request_completed request_id=%s method=%s path=%s status=%s duration_ms=%s",
+            request_id,
+            request.method,
+            request.url.path,
+            response.status_code,
+            elapsed_ms,
+        )
+        response.headers["x-request-id"] = request_id
+        return response
 
     @app.get("/api/health")
     async def health():

@@ -1,6 +1,8 @@
 # Chat endpoints – prepare, message, status.
 from __future__ import annotations
 
+import logging
+
 from fastapi import APIRouter, HTTPException
 
 from app.config import get_settings
@@ -33,6 +35,7 @@ from app.runtime_settings import (
 
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 def _sync_chat_types_for_unstarted_session(session) -> None:
@@ -57,17 +60,30 @@ async def prepare_chat(session_id: str, persona_index: int | None = None):
     # Re-sync pending chat types right before the very first prepare call.
     _sync_chat_types_for_unstarted_session(session)
 
-    # Pick a random chat type from remaining
-    chat_type = pick_random_chat_type(session)
+    try:
+        # Pick a random chat type from remaining
+        chat_type = pick_random_chat_type(session)
 
-    # Select persona and get description
-    persona_info = select_persona_for_session(session, persona_index=persona_index)
+        # Select persona and get description
+        persona_info = select_persona_for_session(session, persona_index=persona_index)
 
-    # Build system prompt
-    prompt = build_system_prompt(session, persona_info["description"])
+        # Build system prompt
+        prompt = build_system_prompt(session, persona_info["description"])
 
-    # Auto-inject first bot message
-    first_msg = get_first_message(session)
+        # Auto-inject first bot message
+        first_msg = get_first_message(session)
+    except ValueError as exc:
+        # E.g. no more chat types remaining
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
+        logger.exception("Failed to prepare chat for session %s", session_id)
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Failed to prepare chat. Check model credentials and runtime model settings. "
+                f"Root error: {exc}"
+            ),
+        )
 
     return ChatPrepareResponse(
         chat_type=chat_type,
@@ -98,7 +114,17 @@ async def post_chat_message(session_id: str, body: ChatMessageRequest):
     if not session.system_message and session.chat_type != "vanilla":
         raise HTTPException(status_code=400, detail="Chat not prepared yet – call /chat/prepare first")
 
-    result = send_message(session, body.content)
+    try:
+        result = send_message(session, body.content)
+    except Exception as exc:
+        logger.exception("Failed to generate chat response for session %s", session_id)
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Failed to generate a chat response. Check model credentials and runtime model settings. "
+                f"Root error: {exc}"
+            ),
+        )
     return ChatMessageResponse(**result)
 
 
