@@ -22,8 +22,6 @@ export default function ChatPage() {
   const [totalChats, setTotalChats] = useState(2);
   const [isPreparing, setIsPreparing] = useState(false);
   const [isProceedingToFeedback, setIsProceedingToFeedback] = useState(false);
-  const [startupError, setStartupError] = useState<string | null>(null);
-  const [startupErrorAt, setStartupErrorAt] = useState<string | null>(null);
 
   // Debug: system prompt viewer
   const [isDebug, setIsDebug] = useState(false);
@@ -54,16 +52,6 @@ export default function ChatPage() {
     : 0;
   const minMessages = chat.status?.min_messages ?? 0;
 
-  const setStartupFailure = (message: string, cause?: unknown) => {
-    setStartupError(message);
-    setStartupErrorAt(new Date().toISOString());
-    console.error("[chat:start] failed", {
-      sessionId: session?.session_id,
-      message,
-      cause,
-    });
-  };
-
   // Redirect if no session (wait until localStorage is read first)
   useEffect(() => {
     if (ready && !session) {
@@ -85,32 +73,16 @@ export default function ChatPage() {
   useEffect(() => {
     if (!ready || !session?.session_id) return;
     const sessionId = session.session_id;
-    setStartupError(null);
-    setStartupErrorAt(null);
-    getChatMessages(sessionId)
-      .then(async (msgRes) => {
-        if (msgRes.messages.length === 0) {
-          // Fresh start — prepare the chat (picks persona, builds prompt, injects first message)
-          setIsPreparing(true);
-          try {
-            await chat.prepare();
-          } catch (e: unknown) {
-            setStartupFailure(e instanceof Error ? e.message : "Failed to prepare chat", e);
-          } finally {
-            setIsPreparing(false);
-          }
-        } else {
-          // Resuming mid-conversation — hydrate existing state
-          try {
-            await chat.initChat();
-          } catch (e: unknown) {
-            setStartupFailure(e instanceof Error ? e.message : "Failed to load chat", e);
-          }
-        }
-      })
-      .catch((e: unknown) => {
-        setStartupFailure(e instanceof Error ? e.message : "Failed to initialize chat", e);
-      });
+    getChatMessages(sessionId).then((msgRes) => {
+      if (msgRes.messages.length === 0) {
+        // Fresh start — prepare the chat (picks persona, builds prompt, injects first message)
+        setIsPreparing(true);
+        chat.prepare().finally(() => setIsPreparing(false));
+      } else {
+        // Resuming mid-conversation — hydrate existing state
+        chat.initChat();
+      }
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, session?.session_id]);
 
@@ -215,30 +187,28 @@ export default function ChatPage() {
 
   if (!ready || !session) return null;
 
-  if (isPreparing) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
-        <div className="w-16 h-16 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin" />
-        <div className="text-center">
-          <p className="text-xl font-semibold text-brand-dark mb-1">Preparing your chat...</p>
-          <p className="text-gray-500 text-sm">This may take a few seconds. Please wait.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <>
-      <header className="text-center mb-6 w-full max-w-3xl">
-        <h1 className="text-[28px] font-bold text-brand-dark mb-2 tracking-tight">
-          Chat with the Language Model
-        </h1>
-        <p className="text-gray-600 text-sm">
-          Complete all {requiredTaskCount || 5} task types and send at least {minMessages || 8} messages to proceed.
-        </p>
-      </header>
+      {isPreparing ? (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
+          <div className="w-16 h-16 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin" />
+          <div className="text-center">
+            <p className="text-xl font-semibold text-brand-dark mb-1">Preparing your chat...</p>
+            <p className="text-gray-500 text-sm">This may take a few seconds. Please wait.</p>
+          </div>
+        </div>
+      ) : (
+        <header className="text-center mb-6 w-full max-w-3xl">
+          <h1 className="text-[28px] font-bold text-brand-dark mb-2 tracking-tight">
+            Chat with the Language Model
+          </h1>
+          <p className="text-gray-600 text-sm">
+            Complete all {requiredTaskCount || 5} task types and send at least {minMessages || 8} messages to proceed.
+          </p>
+        </header>
+      )}
 
-      {/* First chat dialog */}
+      {/* First chat dialog — shown during preparing AND after, until user confirms */}
       <Dialog
         open={showDialog}
         onClose={() => setShowDialog(false)}
@@ -270,32 +240,13 @@ export default function ChatPage() {
         )}
       </Dialog>
 
-      <div className="flex gap-6 w-full max-w-5xl">
+      {!isPreparing && <div className="flex gap-6 w-full max-w-5xl">
         {/* Chat window */}
         <div className="flex-1">
-          {startupError && (
-            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
-              <p className="font-semibold">Could not start this chat round.</p>
-              <p className="mt-1 text-sm break-all">{startupError}</p>
-              <div className="mt-2 text-xs text-red-800/90 bg-red-100 rounded-lg p-2 font-mono break-all">
-                <div>session_id: {session?.session_id ?? "n/a"}</div>
-                <div>time_utc: {startupErrorAt ?? "n/a"}</div>
-              </div>
-              <p className="mt-2 text-xs text-red-700">
-                Share the full error line (including request_id, if present) plus session_id/time_utc when reporting this issue.
-              </p>
-              <div className="mt-3">
-                <GradientButton onClick={() => router.refresh()} className="text-sm">
-                  Retry
-                </GradientButton>
-              </div>
-            </div>
-          )}
           <ChatWindow
             messages={chat.messages}
             sending={chat.sending}
             onSend={chat.sendMessage}
-            disabled={Boolean(startupError)}
           />
         </div>
 
@@ -369,7 +320,7 @@ export default function ChatPage() {
             </div>
           )}
         </div>
-      </div>
+      </div>}
 
       {/* Debug: friends overlap dialog */}
       {friendsInfo && (
