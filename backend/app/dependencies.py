@@ -73,7 +73,7 @@ async def startup() -> None:
     # Persona details (respect runtime default/override instead of hardcoding v3)
     bank = _rs.get_effective_persona_bank()
     _persona_details = _normalize_persona_details(
-        pd.read_pickle(f"{data_dir}/persona_details_{bank}.pkl")
+        pd.read_pickle(f"{data_dir}/persona_details_{bank}.pkl", compression='gzip')
     )
     _loaded_persona_bank = bank
 
@@ -140,5 +140,5 @@ def reload_persona_details(bank: str) -> None:
     from app.config import get_settings
     settings = get_settings()
     pkl_path = f"{settings.data_dir}/persona_details_{bank}.pkl"
-    _persona_details = _normalize_persona_details(pd.read_pickle(pkl_path))
+    _persona_details = _normalize_persona_details(pd.read_pickle(pkl_path), compression='gzip')
     _loaded_persona_bank = bank

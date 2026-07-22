@@ -28,6 +28,7 @@ def pick_random_chat_type(session: SessionData) -> str:
 
 def _rank_personas(
     session: SessionData,
+    persona_details: pd.DataFrame,
     similarity_mode: str = "disabled",
     min_joint_categories: int = 1,
     similarity_threshold: float = 0.3,
@@ -47,7 +48,6 @@ def _rank_personas(
     The returned DataFrame is a subset of persona_details (same index labels) with
     three extra columns: ``_joint_categories``, ``_joint_users``, ``_similarity``.
     """
-    persona_details = get_persona_details()
     friends_filter = similarity_mode in ("friends", "combined")
 
     # Build {category -> set of selected accounts} when filtering is requested.
@@ -129,14 +129,15 @@ def _rank_personas(
 
 def find_most_similar_persona(
     session: SessionData,
+    persona_details: pd.DataFrame,
     similarity_mode: str = "disabled",
     min_joint_categories: int = 1,
     similarity_threshold: float = 0.3,
 ) -> int:
     """Return the iloc position (in persona_details) of the best-ranked persona."""
-    persona_details = get_persona_details()
     ranked = _rank_personas(
         session,
+        persona_details,
         similarity_mode=similarity_mode,
         min_joint_categories=min_joint_categories,
         similarity_threshold=similarity_threshold,
@@ -155,6 +156,7 @@ def find_top_n_similar_personas(
     persona_details = get_persona_details()
     ranked = _rank_personas(
         session,
+        persona_details,
         similarity_mode=similarity_mode,
         min_joint_categories=min_joint_categories,
         similarity_threshold=similarity_threshold,
@@ -177,10 +179,10 @@ def find_top_n_similar_personas(
 
 def _pick_random_persona_below_similarity_threshold(
     session: SessionData,
+    persona_details: pd.DataFrame,
     similarity_threshold: float,
 ) -> tuple[int, np.ndarray]:
     """Pick a random persona whose similarity is below ``similarity_threshold``."""
-    persona_details = get_persona_details()
     if session.user_mean_vector is None:
         idx = random.randint(0, len(persona_details) - 1)
         return idx, np.array([])
@@ -214,6 +216,7 @@ def select_persona_for_session(session: SessionData, persona_index: int | None =
         settings = get_settings()
         idx = persona_index if persona_index is not None else find_most_similar_persona(
             session,
+            persona_details,
             similarity_mode=get_effective_similarity_with_friends(),
             min_joint_categories=settings.min_joint_categories,
             similarity_threshold=get_effective_similarity_threshold(),
@@ -236,6 +239,7 @@ def select_persona_for_session(session: SessionData, persona_index: int | None =
     elif chat_type == "Personalized Random":
         idx, similarities = _pick_random_persona_below_similarity_threshold(
             session,
+            persona_details,
             similarity_threshold=get_effective_random_persona_similarity_threshold(),
         )
         persona = persona_details.iloc[idx]
