@@ -113,11 +113,15 @@ def _build_gemma_model() -> object:
 
     # REST transport (unlike the default gRPC) honors HTTP(S)_PROXY env vars,
     # which is required on proxied networks and harmless elsewhere.
+    # max_retries=1 disables google-api-core's internal retry loop so a slow
+    # response fails in ~25 s instead of retrying for 60+ s.
     model = ChatGoogleGenerativeAI(
         model=settings.gemma_model,
         google_api_key=api_key,
         temperature=0.5,
         transport="rest",
+        max_retries=1,
+        request_options={"timeout": 25},
     )
     _patch_gemma_client_kwargs(model)
     return model
@@ -167,25 +171,18 @@ def _extract_response_text(content: object) -> str:
 
 
 def _generate_with_gemma(system_message: str, history: list, sentence: str) -> str:
-    import time as _time
-    import logging as _logging
-    _logger = _logging.getLogger(__name__)
-    _t0 = _time.perf_counter()
     with _configured_proxy_env():
         model = _build_gemma_model()
-        _logger.info("[gemma] step=model_built elapsed_ms=%.0f", (_time.perf_counter()-_t0)*1000)
         prompt = ChatPromptTemplate.from_messages([
             ("system", system_message),
             MessagesPlaceholder(variable_name="history"),
             ("human", "{sentence}"),
         ])
         chain = prompt | model
-        _logger.info("[gemma] step=invoking_api elapsed_ms=%.0f", (_time.perf_counter()-_t0)*1000)
         response = chain.invoke({
             "sentence": sentence,
             "history": history,
         })
-        _logger.info("[gemma] step=api_done elapsed_ms=%.0f", (_time.perf_counter()-_t0)*1000)
     return _extract_response_text(response.content)
 
 

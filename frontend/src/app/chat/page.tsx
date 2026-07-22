@@ -22,6 +22,7 @@ export default function ChatPage() {
   const [totalChats, setTotalChats] = useState(2);
   const [isPreparing, setIsPreparing] = useState(false);
   const [isProceedingToFeedback, setIsProceedingToFeedback] = useState(false);
+  const [startupError, setStartupError] = useState<string | null>(null);
 
   // Debug: system prompt viewer
   const [isDebug, setIsDebug] = useState(false);
@@ -73,16 +74,33 @@ export default function ChatPage() {
   useEffect(() => {
     if (!ready || !session?.session_id) return;
     const sessionId = session.session_id;
-    getChatMessages(sessionId).then((msgRes) => {
-      if (msgRes.messages.length === 0) {
-        // Fresh start — prepare the chat (picks persona, builds prompt, injects first message)
-        setIsPreparing(true);
-        chat.prepare().finally(() => setIsPreparing(false));
-      } else {
-        // Resuming mid-conversation — hydrate existing state
-        chat.initChat();
+    const runPrepare = async () => {
+      setStartupError(null);
+      try {
+        const msgRes = await getChatMessages(sessionId);
+        if (msgRes.messages.length === 0) {
+          // Fresh start — prepare the chat (picks persona, builds prompt, injects first message)
+          setIsPreparing(true);
+          try {
+            await chat.prepare();
+          } catch (e: unknown) {
+            setStartupError(e instanceof Error ? e.message : "Failed to prepare chat");
+          } finally {
+            setIsPreparing(false);
+          }
+        } else {
+          // Resuming mid-conversation — hydrate existing state
+          try {
+            await chat.initChat();
+          } catch (e: unknown) {
+            setStartupError(e instanceof Error ? e.message : "Failed to load chat");
+          }
+        }
+      } catch (e: unknown) {
+        setStartupError(e instanceof Error ? e.message : "Failed to connect to server");
       }
-    });
+    };
+    runPrepare();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, session?.session_id]);
 
@@ -197,6 +215,26 @@ export default function ChatPage() {
             <p className="text-gray-500 text-sm">This may take a few seconds. Please wait.</p>
           </div>
         </div>
+      ) : startupError ? (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 max-w-lg text-center">
+          <p className="text-red-700 font-semibold">Could not start this chat round.</p>
+          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3 font-mono break-all">{startupError}</p>
+          <button
+            onClick={() => {
+              setStartupError(null);
+              if (!session?.session_id) return;
+              const sessionId = session.session_id;
+              setIsPreparing(true);
+              chat.prepare().then(() => setIsPreparing(false)).catch((e: unknown) => {
+                setStartupError(e instanceof Error ? e.message : "Failed to prepare chat");
+                setIsPreparing(false);
+              });
+            }}
+            className="btn-gradient text-white px-6 py-2 rounded-[0.625rem] font-semibold"
+          >
+            Retry
+          </button>
+        </div>
       ) : (
         <header className="text-center mb-6 w-full max-w-3xl">
           <h1 className="text-[28px] font-bold text-brand-dark mb-2 tracking-tight">
@@ -205,6 +243,12 @@ export default function ChatPage() {
           <p className="text-gray-600 text-sm">
             Complete all {requiredTaskCount || 5} task types and send at least {minMessages || 8} messages to proceed.
           </p>
+          {chat.error && (
+            <div className="mt-3 flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-4 py-2 text-left">
+              <p className="flex-1 text-sm text-red-700">{chat.error}</p>
+              <button onClick={() => chat.clearError()} className="text-red-400 hover:text-red-600 text-lg leading-none">&times;</button>
+            </div>
+          )}
         </header>
       )}
 

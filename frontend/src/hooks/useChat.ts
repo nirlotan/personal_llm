@@ -82,6 +82,7 @@ export function useChat(sessionId: string | undefined) {
     async (content: string): Promise<ChatMessageResponse | null> => {
       if (!sessionId) return null;
       setSending(true);
+      setError(null);
       setMessages((prev) => [...prev, { role: "user", content }]);
 
       try {
@@ -97,6 +98,8 @@ export function useChat(sessionId: string | undefined) {
 
         return res;
       } catch (e: unknown) {
+        // Roll back the optimistic user message so the user can retry
+        setMessages((prev) => prev.slice(0, -1));
         console.error("[chat:send] failed", { sessionId, content, error: e });
         setError(e instanceof Error ? e.message : "Failed to send message");
         return null;
@@ -106,6 +109,8 @@ export function useChat(sessionId: string | undefined) {
     },
     [sessionId]
   );
+
+  const clearError = useCallback(() => setError(null), []);
 
   const refreshMessages = useCallback(async () => {
     if (!sessionId) return;
@@ -120,6 +125,7 @@ export function useChat(sessionId: string | undefined) {
     loading,
     sending,
     error,
+    clearError,
     prepare,
     initChat,
     sendMessage,

@@ -1,9 +1,8 @@
 # Chat endpoints – prepare, message, status.
 from __future__ import annotations
 
-import logging
-
 import asyncio
+import logging
 
 from fastapi import APIRouter, HTTPException
 from fastapi.concurrency import run_in_threadpool
@@ -55,9 +54,6 @@ def _sync_chat_types_for_unstarted_session(session) -> None:
 @router.post("/{session_id}/chat/prepare", response_model=ChatPrepareResponse)
 async def prepare_chat(session_id: str, persona_index: int | None = None):
     """Assign chat type, select persona, build system prompt, inject first message."""
-    import time as _time
-    _t0 = _time.perf_counter()
-
     session = get_session(session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -69,25 +65,19 @@ async def prepare_chat(session_id: str, persona_index: int | None = None):
     try:
         # Pick a random chat type from remaining
         chat_type = pick_random_chat_type(session)
-        logger.info("[prepare:%s] step=pick_chat_type elapsed_ms=%.0f", session_id, (_time.perf_counter()-_t0)*1000)
 
         # Select persona and get description
         persona_info = select_persona_for_session(session, persona_index=persona_index)
-        logger.info("[prepare:%s] step=select_persona elapsed_ms=%.0f", session_id, (_time.perf_counter()-_t0)*1000)
 
         # Build system prompt
         prompt = build_system_prompt(session, persona_info["description"])
-        logger.info("[prepare:%s] step=build_prompt elapsed_ms=%.0f", session_id, (_time.perf_counter()-_t0)*1000)
 
         # Auto-inject first bot message (blocking LLM call – run off the event loop)
         first_msg = await run_in_threadpool(get_first_message, session)
-        logger.info("[prepare:%s] step=first_message elapsed_ms=%.0f", session_id, (_time.perf_counter()-_t0)*1000)
-
     except ValueError as exc:
-        # E.g. no more chat types remaining
         raise HTTPException(status_code=400, detail=str(exc))
     except Exception as exc:
-        logger.exception("[prepare:%s] FAILED elapsed_ms=%.0f error=%s", session_id, (_time.perf_counter()-_t0)*1000, exc)
+        logger.exception("Failed to prepare chat for session %s", session_id)
         raise HTTPException(
             status_code=503,
             detail=(
@@ -125,17 +115,7 @@ async def post_chat_message(session_id: str, body: ChatMessageRequest):
     if not session.system_message and session.chat_type != "vanilla":
         raise HTTPException(status_code=400, detail="Chat not prepared yet – call /chat/prepare first")
 
-    try:
-        result = send_message(session, body.content)
-    except Exception as exc:
-        logger.exception("Failed to generate chat response for session %s", session_id)
-        raise HTTPException(
-            status_code=503,
-            detail=(
-                "Failed to generate a chat response. Check model credentials and runtime model settings. "
-                f"Root error: {exc}"
-            ),
-        )
+    result = send_message(session, body.content)
     return ChatMessageResponse(**result)
 
 
