@@ -167,18 +167,25 @@ def _extract_response_text(content: object) -> str:
 
 
 def _generate_with_gemma(system_message: str, history: list, sentence: str) -> str:
+    import time as _time
+    import logging as _logging
+    _logger = _logging.getLogger(__name__)
+    _t0 = _time.perf_counter()
     with _configured_proxy_env():
         model = _build_gemma_model()
+        _logger.info("[gemma] step=model_built elapsed_ms=%.0f", (_time.perf_counter()-_t0)*1000)
         prompt = ChatPromptTemplate.from_messages([
             ("system", system_message),
             MessagesPlaceholder(variable_name="history"),
             ("human", "{sentence}"),
         ])
         chain = prompt | model
+        _logger.info("[gemma] step=invoking_api elapsed_ms=%.0f", (_time.perf_counter()-_t0)*1000)
         response = chain.invoke({
             "sentence": sentence,
             "history": history,
         })
+        _logger.info("[gemma] step=api_done elapsed_ms=%.0f", (_time.perf_counter()-_t0)*1000)
     return _extract_response_text(response.content)
 
 
