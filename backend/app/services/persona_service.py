@@ -236,7 +236,7 @@ def select_persona_for_session(session: SessionData, persona_index: int | None =
             "description": str(persona.get("description", "")),
         }
 
-    elif chat_type == "Personalized Random":
+    elif chat_type in ("Personalized Random", "random_demographic"):
         idx, similarities = _pick_random_persona_below_similarity_threshold(
             session,
             persona_details,
@@ -257,9 +257,14 @@ def select_persona_for_session(session: SessionData, persona_index: int | None =
         else:
             session.selected_user_similarity = 0.0
         session.selected_user_follow_list = persona.get("follows_list", [])
+        # random_demographic uses the demographic_inference column instead of description
+        if chat_type == "random_demographic":
+            description = str(persona.get("demographic_inference", ""))
+        else:
+            description = str(persona.get("description", ""))
         return {
             "screen_name": persona["screen_name"],
-            "description": str(persona.get("description", "")),
+            "description": description,
         }
 
     elif chat_type in ("PERSONA_ref", "SPC_ref"):

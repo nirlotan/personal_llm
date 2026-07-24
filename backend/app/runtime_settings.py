@@ -28,6 +28,7 @@ ALLOWED_CHAT_TYPES: list[str] = [
     "vanilla",
     "Personalized Like Me",
     "Personalized Random",
+    "random_demographic",
     "PERSONA_ref",
 ]
 ALLOWED_MODELS: list[str] = ["gpt-5.4-mini", "gpt-4o", "gpt-5.2", "gpt-5.4", "gemma4"]
@@ -46,8 +47,8 @@ ALL_TASK_KEYS: list[str] = [
 DEFAULT_REQUIRED_TASKS: dict[str, bool] = {
     "friendly_chat": True,
     "recommendation": True,
-    "second_recommendation": True,
-    "stance_request": True,
+    "second_recommendation": False,
+    "stance_request": False,
     "factual_information": True,
 }
 

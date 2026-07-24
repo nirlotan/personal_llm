@@ -274,7 +274,7 @@ export default function AdminPage() {
               Random persona max similarity
             </legend>
             <p className="text-xs text-gray-500">
-              Used for <strong>Personalized Random</strong>: only personas with similarity strictly below this value are eligible, then one is sampled uniformly at random.
+              Used for <strong>Personalized Random</strong> and <strong>random_demographic</strong>: only personas with similarity strictly below this value are eligible, then one is sampled uniformly at random.
             </p>
             <div className="flex items-center gap-4">
               <input

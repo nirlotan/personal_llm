@@ -35,7 +35,7 @@ class Settings(BaseSettings):
 
     # --- OpenAI ---
     openai_api_key: str = ""
-    openai_model: str = "gpt-5.2"
+    openai_model: str = "gpt-4o"
 
     # --- Google AI Studio (Gemma) ---
     google_ai_studio_api_key: str = "PASTE_GOOGLE_AI_STUDIO_API_KEY_HERE"
@@ -66,7 +66,7 @@ class Settings(BaseSettings):
     similarity_with_friends: str = "disabled"
     min_joint_categories: int = 3
     similarity_threshold: float = 0.92
-    random_persona_similarity_threshold: float = 0.7
+    random_persona_similarity_threshold: float = 0.62
 
     # --- Data paths (relative to backend/) ---
     data_dir: str = "app/data"

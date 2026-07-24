@@ -10,6 +10,7 @@ class ChatType(str, Enum):
     VANILLA = "vanilla"
     PERSONALIZED_LIKE_ME = "Personalized Like Me"
     PERSONALIZED_RANDOM = "Personalized Random"
+    RANDOM_DEMOGRAPHIC = "random_demographic"
     PERSONA_REF = "PERSONA_ref"
     SPC_REF = "SPC_ref"
     VANILLA_WITH_PROMPT = "vanilla_with_prompt"

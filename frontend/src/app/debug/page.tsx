@@ -11,6 +11,7 @@ const CHAT_TYPES = [
   { type: "vanilla", emoji: "🤖", title: "Vanilla", desc: "Experience standard AI assistance." },
   { type: "Personalized Like Me", emoji: "🪞", title: "Personalized Like Me", desc: "Chat that mirrors your style." },
   { type: "Personalized Random", emoji: "🎲", title: "Personalized Random", desc: "Unexpected, varied responses." },
+  { type: "random_demographic", emoji: "👤", title: "Random Demographic", desc: "Random persona using demographic inference." },
   { type: "PERSONA_ref", emoji: "🎭", title: "PERSONA_ref", desc: "Adopt a specific persona." },
   { type: "SPC_ref", emoji: "✨", title: "SPC_ref", desc: "Special reference mode." },
 ];

@@ -184,7 +184,7 @@ def augment_prompt(user_prompt: str, session: SessionData) -> tuple[str, dict]:
         _follow_list = random.sample(_follow_list, 50)
     ref_accounts = ", ".join(_follow_list)
 
-    PERSONALIZED_TYPES = ("Personalized Like Me", "Personalized Random")
+    PERSONALIZED_TYPES = ("Personalized Like Me", "Personalized Random", "random_demographic")
 
     if intent_value == "Recommendation":
         rec_mode = get_effective_recommendation_mode()
