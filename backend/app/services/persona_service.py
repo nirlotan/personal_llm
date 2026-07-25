@@ -257,9 +257,9 @@ def select_persona_for_session(session: SessionData, persona_index: int | None =
         else:
             session.selected_user_similarity = 0.0
         session.selected_user_follow_list = persona.get("follows_list", [])
-        # random_demographic uses the demographic_inference column instead of description
+        # random_demographic uses the demographic_description column instead of description
         if chat_type == "random_demographic":
-            description = str(persona.get("demographic_inference", ""))
+            description = str(persona.get("demographic_description", ""))
         else:
             description = str(persona.get("description", ""))
         return {
