@@ -62,8 +62,12 @@ export default function ThankYouPage() {
             </>
           ) : completionLoaded && !isLikelyProlific ? (
             <>
-              <p className="text-gray-700 mb-3">Your survey was submitted successfully.</p>
-              <p className="text-sm text-gray-600">Thank you for participating.</p>
+              <p className="text-gray-700 mb-3">
+                There was an issue returning you to Prolific. Please send us this code to get credited:
+              </p>
+              <code className="block bg-white/50 p-3 rounded-lg text-purple-700 font-mono text-sm select-all">
+                {sessionCode}
+              </code>
             </>
           ) : (
             <p className="text-gray-700">Preparing completion details...</p>
