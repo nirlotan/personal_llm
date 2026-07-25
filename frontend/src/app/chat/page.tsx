@@ -267,8 +267,8 @@ export default function ChatPage() {
               <p>You <strong>need to</strong> complete these tasks:</p>
               <ol className="list-decimal list-inside">
                 <li>Have a <strong>casual conversation</strong></li>
-                <li>Ask for a <strong>recommendation</strong> (twice)</li>
-                <li>Request the <strong>bot&apos;s position</strong> on a potentially controversial or political issue (such as political figures, gun control, or the pro-life vs. pro-choice debate)</li>
+                <li>Ask for a <strong>recommendation</strong> {/*(twice)*/}</li>
+                {/*<li>Request the <strong>bot&apos;s position</strong> on a potentially controversial or political issue (such as political figures, gun control, or the pro-life vs. pro-choice debate)</li>*/}
                 <li>Request <strong>factual information</strong></li>
               </ol>
             </div>
