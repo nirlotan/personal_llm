@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import logging
+from urllib.parse import urlencode
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import RedirectResponse
 
 from app.config import get_settings
 from app.models.feedback import FeedbackSubmission, SurveyQuestion, SurveyQuestionsResponse
@@ -12,6 +14,9 @@ from app.services.session_service import get_session
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+DEFAULT_PROLIFIC_APPROVAL_CODE = "C3KTZS0A"
+PROLIFIC_COMPLETE_BASE_URL = "https://app.prolific.com/submissions/complete"
 
 
 @router.get("/feedback/questions", response_model=SurveyQuestionsResponse)
@@ -37,6 +42,11 @@ async def post_feedback(session_id: str, body: FeedbackSubmission):
 
     # Check attention
     attention_passed = check_attention(body.ratings)
+    if attention_passed:
+        session.attention_checks_passed += 1
+    else:
+        session.attention_checks_failed += 1
+        session.eligible_for_completion_credit = False
 
     # remaining_chat_types still contains the just-finished type (it's removed on /chat/reset).
     # Subtract 1 to get the true number of chats still to be done after this submission.
@@ -51,25 +61,44 @@ async def post_feedback(session_id: str, body: FeedbackSubmission):
 
 @router.get("/sessions/{session_id}/completion")
 async def get_completion_info(session_id: str):
-    """Return Prolific redirect URL or session code for crediting."""
+    """Return completion metadata without exposing approval codes in API responses."""
     session = get_session(session_id)
-    settings = get_settings()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
 
-    # Determine Prolific status: use in-memory session if available,
-    # otherwise infer from session_id format (pid__study__session).
-    # This handles the case where the backend restarted and the
-    # in-memory session store was wiped.
-    if session:
-        from_prolific = session.user_from_prolific
-    else:
-        from_prolific = "__" in session_id
+    if session.number_of_feedbacks_provided < session.required_feedback_rounds:
+        raise HTTPException(status_code=403, detail="Survey not fully completed")
+    if session.attention_checks_failed > 0 or not session.eligible_for_completion_credit:
+        raise HTTPException(status_code=403, detail="Survey completion not eligible for credit")
 
-    if from_prolific and settings.prolific_approval:
+    from_prolific = session.user_from_prolific
+    if from_prolific:
         return {
-            "redirect_url": f"https://app.prolific.com/submissions/complete?cc={settings.prolific_approval}",
+            "redirect_url": f"/api/sessions/{session_id}/completion/redirect",
             "session_id": session_id,
         }
     return {
         "redirect_url": None,
         "session_id": session_id,
     }
+
+
+@router.get("/sessions/{session_id}/completion/redirect")
+async def redirect_completion_to_prolific(session_id: str):
+    """Redirect eligible Prolific participants to Prolific complete URL."""
+    session = get_session(session_id)
+    settings = get_settings()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    if session.number_of_feedbacks_provided < session.required_feedback_rounds:
+        raise HTTPException(status_code=403, detail="Survey not fully completed")
+    if session.attention_checks_failed > 0 or not session.eligible_for_completion_credit:
+        raise HTTPException(status_code=403, detail="Survey completion not eligible for credit")
+
+    if not session.user_from_prolific:
+        raise HTTPException(status_code=400, detail="Session is not a Prolific session")
+
+    approval_code = settings.prolific_approval.strip() or DEFAULT_PROLIFIC_APPROVAL_CODE
+    redirect_target = f"{PROLIFIC_COMPLETE_BASE_URL}?{urlencode({'cc': approval_code})}"
+    return RedirectResponse(url=redirect_target, status_code=307)

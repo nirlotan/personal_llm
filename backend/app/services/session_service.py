@@ -52,6 +52,11 @@ class SessionData:
         self.langchain_messages: list = []            # raw LangChain message objects
         self.last_message_time: float = 0.0
         self.number_of_feedbacks_provided: int = 0
+        # Completion-credit guards
+        self.required_feedback_rounds: int = 0
+        self.attention_checks_passed: int = 0
+        self.attention_checks_failed: int = 0
+        self.eligible_for_completion_credit: bool = True
 
 
 # ── In-memory session store ────────────────────────────────────────────────
@@ -85,6 +90,7 @@ def create_session(
 
     if chat_types:
         session.remaining_chat_types = list(chat_types)  # copy
+        session.required_feedback_rounds = len(chat_types)
 
     _sessions[sid] = session
     return session
